@@ -1,0 +1,21 @@
+# FastAPI et dépendances
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+
+# SQLAlchemy et bases de données
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Pydantic (inclus avec FastAPI)
+pydantic==2.5.2
+
+# Pour la validation des modèles
+pydantic-settings==2.1.0
+
+# Pour le logging
+python-multipart==0.0.6
+
+# Pour la documentation
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
