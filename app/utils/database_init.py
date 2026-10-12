@@ -3,6 +3,7 @@ Utilitaires pour l'initialisation de la base de données
 """
 
 import logging
+from typing import Optional, List, Dict
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.config.database import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, Base
@@ -242,7 +243,7 @@ def init_maquette_database(year: int) -> bool:
     return True
 
 
-def init_all_databases(years: list = None) -> dict:
+def init_all_databases(years: Optional[List[int]] = None) -> Dict[str, bool]:
     """
     Initialise toutes les bases de données pour les années spécifiées
     

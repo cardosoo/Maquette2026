@@ -34,9 +34,9 @@ class Etape(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nom = Column(String(128), nullable=False)
     code = Column(String(128), nullable=False, index=True)
-    type = Column(String(128), nullable=False)  # type: L1, L2, L3, M1, M2, etc.
-    niveau = Column(String(128), nullable=False)  # niveau: Licence, Master, Doctorat
-    domaine = Column(String(128), nullable=False)  # domaine: Sciences, Lettres, etc.
+    type = Column(String(128), nullable=False)  # type : L1, L2, L3, M1, M2, etc.
+    niveau = Column(String(128), nullable=False)  # niveau : Licence, Master, Doctorat
+    domaine = Column(String(128), nullable=False)  # domaine : Sciences, Lettres, etc.
     effectif = Column(Integer, nullable=False, default=0)
     composante_id = Column(Integer, ForeignKey('composante.id'), nullable=False)
     

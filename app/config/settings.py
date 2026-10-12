@@ -2,9 +2,11 @@
 Configuration des paramètres de l'application
 """
 
-from pydantic_settings import BaseSettings
-from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from typing import List, Optional
 from functools import lru_cache
+import json
 
 
 class Settings(BaseSettings):
@@ -24,6 +26,11 @@ class Settings(BaseSettings):
     APP_NAME: str = "Maquettes API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
+    APP_PORT: int = 8000
+    UVICORN_RELOAD: bool = False
+    
+    # Payloads autorisés (liste de codes UUID)
+    PAYLOAD: Optional[List[str]] = None
     
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
@@ -35,9 +42,24 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 100
     MAX_PAGE_SIZE: int = 1000
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    @field_validator('PAYLOAD', mode='before')
+    @classmethod
+    def parse_payload(cls, v):
+        """Parse le champ PAYLOAD depuis une chaîne JSON"""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                # Si ce n'est pas du JSON, essayer de splitter par virgule
+                return [item.strip() for item in v.split(',') if item.strip()]
+        return v
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8"
+    )
 
 
 @lru_cache()

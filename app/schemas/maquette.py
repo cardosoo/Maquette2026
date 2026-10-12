@@ -2,9 +2,11 @@
 Schéma Pydantic pour la validation et la sérialisation des données
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Generic, TypeVar
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
+
+T = TypeVar('T')
 
 
 # Schémas pour Composante
@@ -129,8 +131,8 @@ class ECUERattachementResponse(BaseModel):
 
 
 # Schémas pour les listes et réponses paginées
-class PaginatedResponse(BaseModel):
-    items: List[Any] = Field(..., description="Liste des éléments")
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T] = Field(..., description="Liste des éléments")
     total: int = Field(..., description="Nombre total d'éléments")
     page: int = Field(..., description="Numéro de la page")
     page_size: int = Field(..., description="Taille de la page")

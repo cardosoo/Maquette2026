@@ -3,7 +3,7 @@ Service pour la gestion des données de maquettes
 Contient la logique métier pour les opérations CRUD et les requêtes complexes
 """
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, cast
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
 from app.models.maquette import Composante, Etape, ECUE, ECUE_Etape
@@ -28,9 +28,25 @@ class MaquetteService:
         """Récupère une composante par son ID"""
         return self.db.query(Composante).filter(Composante.id == composante_id).first()
     
+    def get_composante_by_code(self, code: str) -> Optional[Composante]:
+        """Récupère une composante par son code"""
+        return self.db.query(Composante).filter(Composante.code == code).first()
+    
     def get_all_composantes(self, skip: int = 0, limit: int = 100) -> Tuple[List[Composante], int]:
         """Récupère toutes les composantes avec pagination"""
         query = self.db.query(Composante)
+        total = query.count()
+        composantes = query.offset(skip).limit(limit).all()
+        return composantes, total
+    
+    def search_composantes(self, code: Optional[str] = None,
+                           skip: int = 0, limit: int = 100) -> Tuple[List[Composante], int]:
+        """Recherche des composantes avec filtre par code"""
+        query = self.db.query(Composante)
+        
+        if code:
+            query = query.filter(Composante.code == code)
+        
         total = query.count()
         composantes = query.offset(skip).limit(limit).all()
         return composantes, total
@@ -81,6 +97,10 @@ class MaquetteService:
     def get_etape_by_id(self, etape_id: int) -> Optional[Etape]:
         """Récupère une étape par son ID"""
         return self.db.query(Etape).filter(Etape.id == etape_id).first()
+    
+    def get_etape_by_code(self, code: str) -> Optional[Etape]:
+        """Récupère une étape par son code"""
+        return self.db.query(Etape).filter(Etape.code == code).first()
     
     def get_etapes_by_composante(self, composante_id: int, skip: int = 0, limit: int = 100) -> Tuple[List[Etape], int]:
         """Récupère toutes les étapes d'une composante avec pagination"""
@@ -159,6 +179,10 @@ class MaquetteService:
     def get_ecue_by_id(self, ecue_id: int) -> Optional[ECUE]:
         """Récupère une ECUE par son ID"""
         return self.db.query(ECUE).filter(ECUE.id == ecue_id).first()
+    
+    def get_ecue_by_code(self, code: str) -> Optional[ECUE]:
+        """Récupère une ECUE par son code"""
+        return self.db.query(ECUE).filter(ECUE.code == code).first()
     
     def get_ecues_by_etape(self, etape_id: int, skip: int = 0, limit: int = 100) -> Tuple[List[ECUE], int]:
         """Récupère toutes les ECUE d'une étape avec pagination"""
@@ -325,13 +349,13 @@ class MaquetteService:
             )
         
         # L'étape principale est celle dans le champ etape_id de l'ECUE
-        etape_principale = self.get_etape_by_id(ecue.etape_id)
+        etape_principale = self.get_etape_by_id(cast(int, ecue.etape_id))
         
         # Les autres étapes sont dans la table ecue_etape
         autres_etapes = []
         rattachements = self.get_ecue_etapes_by_ecue(ecue_id)
         for rattachement in rattachements:
-            etape = self.get_etape_by_id(rattachement.etape_id)
+            etape = self.get_etape_by_id(cast(int, rattachement.etape_id))
             if etape and etape.id != ecue.etape_id:  # Exclure l'étape principale
                 autres_etapes.append(etape)
         
@@ -356,14 +380,14 @@ class MaquetteService:
         etapes = []
         
         # Ajouter l'étape principale
-        etape_principale = self.get_etape_by_id(ecue.etape_id)
+        etape_principale = self.get_etape_by_id(cast(int, ecue.etape_id))
         if etape_principale:
             etapes.append(etape_principale)
         
         # Ajouter les étapes de la table ecue_etape
         rattachements = self.get_ecue_etapes_by_ecue(ecue_id)
         for rattachement in rattachements:
-            etape = self.get_etape_by_id(rattachement.etape_id)
+            etape = self.get_etape_by_id(cast(int, rattachement.etape_id))
             if etape and etape.id != ecue.etape_id:
                 etapes.append(etape)
         
@@ -373,6 +397,7 @@ class MaquetteService:
                      niveau: Optional[str] = None,
                      domaine: Optional[str] = None,
                      type: Optional[str] = None,
+                     code: Optional[str] = None,
                      skip: int = 0, limit: int = 100) -> Tuple[List[Etape], int]:
         """
         Recherche des étapes avec filtres
@@ -387,6 +412,8 @@ class MaquetteService:
             query = query.filter(Etape.domaine == domaine)
         if type:
             query = query.filter(Etape.type == type)
+        if code:
+            query = query.filter(Etape.code == code)
         
         total = query.count()
         etapes = query.offset(skip).limit(limit).all()

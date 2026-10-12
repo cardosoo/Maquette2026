@@ -1,0 +1,179 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.0.0, pluggy-1.6.0 -- /home/olivier/Devel/Maquette2026/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/olivier/Devel/Maquette2026
+plugins: cov-4.1.0, anyio-3.7.1
+collecting ... collected 10 items
+
+tests/test_basic.py::TestComposantes::test_create_composante FAILED      [ 10%]
+tests/test_basic.py::TestComposantes::test_get_composantes FAILED        [ 20%]
+tests/test_basic.py::TestComposantes::test_get_composante_by_id FAILED   [ 30%]
+tests/test_basic.py::TestEtapes::test_create_etape FAILED                [ 40%]
+tests/test_basic.py::TestEtapes::test_get_etapes_by_composante FAILED    [ 50%]
+tests/test_basic.py::TestECUE::test_create_ecue FAILED                   [ 60%]
+tests/test_basic.py::TestECUE::test_get_ecues_by_etape FAILED            [ 70%]
+tests/test_basic.py::TestGeneral::test_root_endpoint PASSED              [ 80%]
+tests/test_basic.py::TestGeneral::test_health_endpoint PASSED            [ 90%]
+tests/test_basic.py::TestGeneral::test_years_endpoint FAILED             [100%]
+
+=================================== FAILURES ===================================
+____________________ TestComposantes.test_create_composante ____________________
+
+self = <tests.test_basic.TestComposantes object at 0x7a91d12af680>
+test_client = <starlette.testclient.TestClient object at 0x7a91d036f770>
+
+    def test_create_composante(self, test_client):
+        """Test la création d'une composante"""
+        response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté de Test"},
+            headers=TEST_HEADERS
+        )
+    
+>       assert response.status_code == 201
+E       assert 422 == 201
+E        +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+
+tests/test_basic.py:90: AssertionError
+_____________________ TestComposantes.test_get_composantes _____________________
+
+self = <tests.test_basic.TestComposantes object at 0x7a91d031f560>
+test_client = <starlette.testclient.TestClient object at 0x7a91d03b9160>
+
+    def test_get_composantes(self, test_client):
+        """Test la récupération de toutes les composantes"""
+        # Créer une composante d'abord
+        test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test"},
+            headers=TEST_HEADERS
+        )
+    
+        response = test_client.get(
+            "/composantes/",
+            headers=TEST_HEADERS
+        )
+    
+>       assert response.status_code == 200
+E       assert 422 == 200
+E        +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+
+tests/test_basic.py:108: AssertionError
+__________________ TestComposantes.test_get_composante_by_id ___________________
+
+self = <tests.test_basic.TestComposantes object at 0x7a91d031f650>
+test_client = <starlette.testclient.TestClient object at 0x7a91d03b8ef0>
+
+    def test_get_composante_by_id(self, test_client):
+        """Test la récupération d'une composante par ID"""
+        # Créer une composante
+        create_response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test"},
+            headers=TEST_HEADERS
+        )
+>       composante_id = create_response.json()["id"]
+E       KeyError: 'id'
+
+tests/test_basic.py:119: KeyError
+_________________________ TestEtapes.test_create_etape _________________________
+
+self = <tests.test_basic.TestEtapes object at 0x7a91d031fa40>
+test_client = <starlette.testclient.TestClient object at 0x7a91d03e7ec0>
+
+    def test_create_etape(self, test_client):
+        """Test la création d'une étape"""
+        # Créer une composante d'abord
+        composante_response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test"},
+            headers=TEST_HEADERS
+        )
+>       composante_id = composante_response.json()["id"]
+E       KeyError: 'id'
+
+tests/test_basic.py:141: KeyError
+___________________ TestEtapes.test_get_etapes_by_composante ___________________
+
+self = <tests.test_basic.TestEtapes object at 0x7a91d031f9b0>
+test_client = <starlette.testclient.TestClient object at 0x7a91d03b8ec0>
+
+    def test_get_etapes_by_composante(self, test_client):
+        """Test la récupération des étapes par composante"""
+        # Créer une composante
+        composante_response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test"},
+            headers=TEST_HEADERS
+        )
+>       composante_id = composante_response.json()["id"]
+E       KeyError: 'id'
+
+tests/test_basic.py:170: KeyError
+__________________________ TestECUE.test_create_ecue ___________________________
+
+self = <tests.test_basic.TestECUE object at 0x7a91d031fbf0>
+test_client = <starlette.testclient.TestClient object at 0x7a91cfa24e30>
+
+    def test_create_ecue(self, test_client):
+        """Test la création d'une ECUE"""
+        # Créer une composante
+        composante_response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test"},
+            headers=TEST_HEADERS
+        )
+>       composante_id = composante_response.json()["id"]
+E       KeyError: 'id'
+
+tests/test_basic.py:208: KeyError
+_______________________ TestECUE.test_get_ecues_by_etape _______________________
+
+self = <tests.test_basic.TestECUE object at 0x7a91d031fd10>
+test_client = <starlette.testclient.TestClient object at 0x7a91d03ba1e0>
+
+    def test_get_ecues_by_etape(self, test_client):
+        """Test la récupération des ECUE par étape"""
+        # Créer une composante
+        composante_response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test"},
+            headers=TEST_HEADERS
+        )
+>       composante_id = composante_response.json()["id"]
+E       KeyError: 'id'
+
+tests/test_basic.py:253: KeyError
+_______________________ TestGeneral.test_years_endpoint ________________________
+
+self = <tests.test_basic.TestGeneral object at 0x7a91d036c1d0>
+test_client = <starlette.testclient.TestClient object at 0x7a91cfa59880>
+
+    def test_years_endpoint(self, test_client):
+        """Test l'endpoint des années disponibles"""
+        response = test_client.get("/years")
+>       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = <Response [403 Forbidden]>.status_code
+
+tests/test_basic.py:313: AssertionError
+=============================== warnings summary ===============================
+app/config/database.py:23
+  /home/olivier/Devel/Maquette2026/app/config/database.py:23: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:271
+  /home/olivier/Devel/Maquette2026/venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:271: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.5/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_basic.py::TestComposantes::test_create_composante - assert ...
+FAILED tests/test_basic.py::TestComposantes::test_get_composantes - assert 42...
+FAILED tests/test_basic.py::TestComposantes::test_get_composante_by_id - KeyE...
+FAILED tests/test_basic.py::TestEtapes::test_create_etape - KeyError: 'id'
+FAILED tests/test_basic.py::TestEtapes::test_get_etapes_by_composante - KeyEr...
+FAILED tests/test_basic.py::TestECUE::test_create_ecue - KeyError: 'id'
+FAILED tests/test_basic.py::TestECUE::test_get_ecues_by_etape - KeyError: 'id'
+FAILED tests/test_basic.py::TestGeneral::test_years_endpoint - assert 403 == 200
+=================== 8 failed, 2 passed, 2 warnings in 2.80s ====================

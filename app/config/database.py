@@ -5,10 +5,14 @@ Gère les connexions aux bases annualisées (maquettes2024, maquettes2025, maque
 
 from typing import Optional, Generator
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
+from sqlalchemy.engine import Engine
 import os
 from contextlib import contextmanager
+from dotenv import load_dotenv
+
+# Charger le fichier .env
+load_dotenv()
 
 # Configuration de base
 DATABASE_HOST = os.getenv("DATABASE_HOST", "localhost")
@@ -25,7 +29,7 @@ class DatabaseConfig:
         self._engines = {}
         self._session_makers = {}
     
-    def get_engine(self, year: int) -> create_engine:
+    def get_engine(self, year: int) -> Engine:
         """
         Retourne un engine SQLAlchemy pour l'année spécifiée
         
@@ -103,9 +107,12 @@ class DatabaseConfig:
 database_config = DatabaseConfig()
 
 # Fonction utilitaire pour obtenir une session rapidement
-def get_db_session(year: int) -> Generator[Session, None, None]:
+def get_db_session(year: int = 2026) -> Generator[Session, None, None]:
     """
     Générateur de session pour une année donnée (utilisé par FastAPI Dependency Injection)
+    
+    Args:
+        year: Année de la maquette (par défaut 2026)
     """
     with database_config.get_session(year) as session:
         yield session

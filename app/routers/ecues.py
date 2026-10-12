@@ -3,14 +3,15 @@ Router pour les opérations sur les ECUE
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, cast
 from sqlalchemy.orm import Session
 
-from app.config.database import get_db_session
+from app.config.dependencies import get_db_session_with_payload as get_db_session
 from app.services.maquette_service import MaquetteService
 from app.schemas.maquette import (
     ECUEResponse, ECUECreate, ECUEUpdate,
     ECUEWithEtapeResponse,
+    EtapeResponse, ComposanteResponse,
     PaginatedResponse, ErrorResponse
 )
 
@@ -22,8 +23,8 @@ def get_service(db_session: Session = Depends(get_db_session)) -> MaquetteServic
     return MaquetteService(db_session)
 
 
-@router.get("/", response_model=PaginatedResponse, responses={
-    200: {"model": PaginatedResponse},
+@router.get("/", response_model=PaginatedResponse[ECUEResponse], responses={
+    200: {"model": PaginatedResponse[ECUEResponse]},
     500: {"model": ErrorResponse}
 })
 async def get_ecues(
@@ -45,17 +46,14 @@ async def get_ecues(
     - **code**: Code de l'ECUE (recherche partielle) pour filtrer
     - **nom**: Nom de l'ECUE (recherche partielle) pour filtrer
     """
-    if etape_id:
-        ecues, total = service.get_ecues_by_etape(etape_id, skip=skip, limit=limit)
-    else:
-        ecues, total = service.search_ecues(
-            etape_id=etape_id,
-            periode=periode,
-            code=code,
-            nom=nom,
-            skip=skip,
-            limit=limit
-        )
+    ecues, total = service.search_ecues(
+        etape_id=etape_id,
+        periode=periode,
+        code=code,
+        nom=nom,
+        skip=skip,
+        limit=limit
+    )
     
     return {
         "items": [ECUEResponse.model_validate(ecue) for ecue in ecues],
@@ -87,7 +85,7 @@ async def get_ecue_by_id(
         )
     
     # Charger l'étape séparément
-    etape = service.get_etape_by_id(ecue.etape_id)
+    etape = service.get_etape_by_id(cast(int, ecue.etape_id))
     
     return ECUEWithEtapeResponse.model_validate({
         **ECUEResponse.model_validate(ecue).model_dump(),
@@ -95,8 +93,38 @@ async def get_ecue_by_id(
     })
 
 
-@router.get("/etape/{etape_id}", response_model=PaginatedResponse, responses={
-    200: {"model": PaginatedResponse},
+@router.get("/code/{code}", response_model=ECUEWithEtapeResponse, responses={
+    200: {"model": ECUEWithEtapeResponse},
+    404: {"model": ErrorResponse},
+    500: {"model": ErrorResponse}
+})
+async def get_ecue_by_code(
+    code: str,
+    service: MaquetteService = Depends(get_service)
+):
+    """
+    Récupère une ECUE spécifique par son code avec son étape principale
+    
+    - **code**: Code de l'ECUE à récupérer
+    """
+    ecue = service.get_ecue_by_code(code)
+    if not ecue:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"ECUE avec le code '{code}' non trouvée"
+        )
+    
+    # Charger l'étape séparément
+    etape = service.get_etape_by_id(cast(int, ecue.etape_id))
+    
+    return ECUEWithEtapeResponse.model_validate({
+        **ECUEResponse.model_validate(ecue).model_dump(),
+        "etape": EtapeResponse.model_validate(etape)
+    })
+
+
+@router.get("/etape/{etape_id}", response_model=PaginatedResponse[ECUEResponse], responses={
+    200: {"model": PaginatedResponse[ECUEResponse]},
     500: {"model": ErrorResponse}
 })
 async def get_ecues_by_etape(

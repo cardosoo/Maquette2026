@@ -3,10 +3,10 @@ Router pour les opérations sur les rattachements ECUE-Étape
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List
+from typing import List, Optional, cast
 from sqlalchemy.orm import Session
 
-from app.config.database import get_db_session
+from app.config.dependencies import get_db_session_with_payload as get_db_session
 from app.services.maquette_service import MaquetteService
 from app.schemas.maquette import (
     ECUEEtapeResponse, ECUEEtapeCreate, ECUEEtapeUpdate,
@@ -24,8 +24,8 @@ def get_service(db_session: Session = Depends(get_db_session)) -> MaquetteServic
     return MaquetteService(db_session)
 
 
-@router.get("/", response_model=PaginatedResponse, responses={
-    200: {"model": PaginatedResponse},
+@router.get("/", response_model=PaginatedResponse[ECUEEtapeResponse], responses={
+    200: {"model": PaginatedResponse[ECUEEtapeResponse]},
     500: {"model": ErrorResponse}
 })
 async def get_all_rattachements(
@@ -70,8 +70,8 @@ async def get_rattachements_by_ecue(
     # Charger les détails pour chaque rattachement
     result = []
     for rattachement in rattachements:
-        ecue = service.get_ecue_by_id(rattachement.ecue_id)
-        etape = service.get_etape_by_id(rattachement.etape_id)
+        ecue = service.get_ecue_by_id(cast(int, rattachement.ecue_id))
+        etape = service.get_etape_by_id(cast(int, rattachement.etape_id))
         
         if ecue and etape:
             result.append(ECUEEtapeWithDetailsResponse.model_validate({
@@ -81,6 +81,30 @@ async def get_rattachements_by_ecue(
             }))
     
     return result
+
+
+@router.get("/ecue/code/{ecue_code}", response_model=List[ECUEEtapeWithDetailsResponse], responses={
+    200: {"model": List[ECUEEtapeWithDetailsResponse]},
+    404: {"model": ErrorResponse},
+    500: {"model": ErrorResponse}
+})
+async def get_rattachements_by_ecue_code(
+    ecue_code: str,
+    service: MaquetteService = Depends(get_service)
+):
+    """
+    Récupère tous les rattachements pour une ECUE spécifique par son code
+    
+    - **ecue_code**: Code de l'ECUE
+    """
+    ecue = service.get_ecue_by_code(ecue_code)
+    if not ecue:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"ECUE avec le code '{ecue_code}' non trouvée"
+        )
+    
+    return await get_rattachements_by_ecue(cast(int, ecue.id), service)
 
 
 @router.get("/etape/{etape_id}", response_model=List[ECUEEtapeWithDetailsResponse], responses={
@@ -101,8 +125,8 @@ async def get_rattachements_by_etape(
     # Charger les détails pour chaque rattachement
     result = []
     for rattachement in rattachements:
-        ecue = service.get_ecue_by_id(rattachement.ecue_id)
-        etape = service.get_etape_by_id(rattachement.etape_id)
+        ecue = service.get_ecue_by_id(cast(int, rattachement.ecue_id))
+        etape = service.get_etape_by_id(cast(int, rattachement.etape_id))
         
         if ecue and etape:
             result.append(ECUEEtapeWithDetailsResponse.model_validate({
@@ -112,6 +136,30 @@ async def get_rattachements_by_etape(
             }))
     
     return result
+
+
+@router.get("/etape/code/{etape_code}", response_model=List[ECUEEtapeWithDetailsResponse], responses={
+    200: {"model": List[ECUEEtapeWithDetailsResponse]},
+    404: {"model": ErrorResponse},
+    500: {"model": ErrorResponse}
+})
+async def get_rattachements_by_etape_code(
+    etape_code: str,
+    service: MaquetteService = Depends(get_service)
+):
+    """
+    Récupère tous les rattachements pour une étape spécifique par son code
+    
+    - **etape_code**: Code de l'étape
+    """
+    etape = service.get_etape_by_code(etape_code)
+    if not etape:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Étape avec le code '{etape_code}' non trouvée"
+        )
+    
+    return await get_rattachements_by_etape(cast(int, etape.id), service)
 
 
 @router.post("/", response_model=ECUEEtapeResponse, status_code=status.HTTP_201_CREATED, responses={

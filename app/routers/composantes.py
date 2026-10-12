@@ -3,10 +3,10 @@ Router pour les opérations sur les composantes
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from app.config.database import get_db_session
+from app.config.dependencies import get_db_session_with_payload as get_db_session
 from app.services.maquette_service import MaquetteService
 from app.schemas.maquette import (
     ComposanteResponse, ComposanteCreate, ComposanteUpdate,
@@ -21,13 +21,14 @@ def get_service(db_session: Session = Depends(get_db_session)) -> MaquetteServic
     return MaquetteService(db_session)
 
 
-@router.get("/", response_model=PaginatedResponse, responses={
-    200: {"model": PaginatedResponse},
+@router.get("/", response_model=PaginatedResponse[ComposanteResponse], responses={
+    200: {"model": PaginatedResponse[ComposanteResponse]},
     500: {"model": ErrorResponse}
 })
 async def get_composantes(
     skip: int = Query(0, ge=0, description="Nombre d'éléments à sauter"),
     limit: int = Query(100, ge=1, le=1000, description="Nombre maximal d'éléments à retourner"),
+    code: Optional[str] = Query(None, description="Filtrer par code"),
     service: MaquetteService = Depends(get_service)
 ):
     """
@@ -35,8 +36,13 @@ async def get_composantes(
     
     - **skip**: Nombre d'éléments à sauter pour la pagination
     - **limit**: Nombre maximal d'éléments à retourner
+    - **code**: Code de la composante pour filtrer
     """
-    composantes, total = service.get_all_composantes(skip=skip, limit=limit)
+    composantes, total = service.search_composantes(
+        code=code,
+        skip=skip,
+        limit=limit
+    )
     
     return {
         "items": [ComposanteResponse.model_validate(composante) for composante in composantes],
@@ -65,6 +71,29 @@ async def get_composante_by_id(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Composante avec l'ID {composante_id} non trouvée"
+        )
+    return ComposanteResponse.model_validate(composante)
+
+
+@router.get("/code/{code}", response_model=ComposanteResponse, responses={
+    200: {"model": ComposanteResponse},
+    404: {"model": ErrorResponse},
+    500: {"model": ErrorResponse}
+})
+async def get_composante_by_code(
+    code: str,
+    service: MaquetteService = Depends(get_service)
+):
+    """
+    Récupère une composante spécifique par son code
+    
+    - **code**: Code de la composante à récupérer
+    """
+    composante = service.get_composante_by_code(code)
+    if not composante:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Composante avec le code '{code}' non trouvée"
         )
     return ComposanteResponse.model_validate(composante)
 

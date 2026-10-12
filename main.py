@@ -13,7 +13,7 @@ Pour accéder à la documentation:
 http://localhost:8000/docs
 """
 
-from fastapi import FastAPI, Depends, HTTPException, status, Query, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Query, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional
@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 # Import des routeurs
 from app.routers import composantes, etapes, ecues, rattachements
 from app.config.database import database_config
+from app.config.settings import get_settings
+from app.config.dependencies import get_db_session, get_db_session_with_payload, payload_middleware
 
 # Création de l'application FastAPI
 app = FastAPI(
@@ -37,77 +39,55 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    openapi_extra={
+        "components": {
+            "securitySchemes": {
+                "X-Payload": {
+                    "type": "apiKey",
+                    "in": "header",
+                    "name": "X-Payload",
+                    "description": "Code payload pour autorisation"
+                }
+            }
+        },
+        "security": [
+            {"X-Payload": []}
+        ]
+    }
 )
 
-# Configuration CORS
+# Configuration CORS (inclut les headers personnalisés)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["X-Maquette-Year", "X-Payload"]
 )
 
+# Middleware pour vérifier le payload
+app.middleware("http")(payload_middleware)
 
-# Middleware pour gérer l'année de la maquette
-from fastapi import Request
-from contextlib import contextmanager
-from sqlalchemy.orm import Session
+# Route pour le favicon
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
-async def get_year_from_header(
-    x_maquette_year: Optional[int] = Header(None, description="Année de la maquette (2024, 2025, 2026)")
-) -> int:
-    """
-    Récupère l'année de la maquette depuis l'en-tête HTTP
-    Si non spécifiée, utilise l'année par défaut (2026)
-    """
-    if x_maquette_year and x_maquette_year in database_config.get_available_years():
-        return x_maquette_year
-    
-    # Année par défaut
-    default_year = 2026
-    if default_year in database_config.get_available_years():
-        return default_year
-    
-    # Si aucune année disponible, retourner la première de la liste
-    available_years = database_config.get_available_years()
-    if available_years:
-        return available_years[0]
-    
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Aucune base de données disponible"
-    )
+# Servir les fichiers statiques (favicon.ico, etc.)
+static_path = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
+# Route pour favicon.ico à la racine (avec fallback)
+@app.get("/favicon.ico")
+async def get_favicon():
+    """Retourne le favicon s'il existe dans le dossier static, sinon une réponse vide"""
+    favicon_path = static_path / "favicon.ico"
+    if favicon_path.exists():
+        return FileResponse(favicon_path, media_type="image/x-icon")
+    # Retourner un favicon vide (évite le 404)
+    return Response(content=b"", media_type="image/x-icon")
 
-@contextmanager
-def get_db_session_for_year(year: int):
-    """
-    Contexte pour obtenir une session de base de données pour une année donnée
-    """
-    with database_config.get_session(year) as session:
-        yield session
-
-
-# Dependency pour obtenir la session de la bonne année
-async def get_db_session(
-    year: int = Depends(get_year_from_header)
-) -> Session:
-    """
-    Dependency pour obtenir une session de base de données en fonction de l'année
-    """
-    # Créer une session pour l'année spécifiée
-    session_maker = database_config.get_session_maker(year)
-    session = session_maker()
-    try:
-        yield session
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        raise e
-    finally:
-        session.close()
+from fastapi.responses import FileResponse, Response
 
 
 # Inclure les routeurs
@@ -172,4 +152,10 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    settings = get_settings()
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=settings.APP_PORT,
+        reload=settings.DEBUG or settings.UVICORN_RELOAD
+    )

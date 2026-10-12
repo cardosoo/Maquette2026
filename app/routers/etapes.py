@@ -3,14 +3,15 @@ Router pour les opérations sur les étapes
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List, Optional
+from typing import List, Optional, cast
 from sqlalchemy.orm import Session
 
-from app.config.database import get_db_session
+from app.config.dependencies import get_db_session_with_payload as get_db_session
 from app.services.maquette_service import MaquetteService
 from app.schemas.maquette import (
     EtapeResponse, EtapeCreate, EtapeUpdate,
     EtapeWithComposanteResponse,
+    ComposanteResponse,
     PaginatedResponse, ErrorResponse
 )
 
@@ -22,8 +23,8 @@ def get_service(db_session: Session = Depends(get_db_session)) -> MaquetteServic
     return MaquetteService(db_session)
 
 
-@router.get("/", response_model=PaginatedResponse, responses={
-    200: {"model": PaginatedResponse},
+@router.get("/", response_model=PaginatedResponse[EtapeResponse], responses={
+    200: {"model": PaginatedResponse[EtapeResponse]},
     500: {"model": ErrorResponse}
 })
 async def get_etapes(
@@ -33,6 +34,7 @@ async def get_etapes(
     niveau: Optional[str] = Query(None, description="Filtrer par niveau"),
     domaine: Optional[str] = Query(None, description="Filtrer par domaine"),
     type: Optional[str] = Query(None, description="Filtrer par type"),
+    code: Optional[str] = Query(None, description="Filtrer par code"),
     service: MaquetteService = Depends(get_service)
 ):
     """
@@ -44,18 +46,17 @@ async def get_etapes(
     - **niveau**: Niveau (Licence, Master, etc.) pour filtrer
     - **domaine**: Domaine pour filtrer
     - **type**: Type (L1, L2, etc.) pour filtrer
+    - **code**: Code de l'étape pour filtrer
     """
-    if composante_id:
-        etapes, total = service.get_etapes_by_composante(composante_id, skip=skip, limit=limit)
-    else:
-        etapes, total = service.search_etapes(
-            composante_id=composante_id,
-            niveau=niveau,
-            domaine=domaine,
-            type=type,
-            skip=skip,
-            limit=limit
-        )
+    etapes, total = service.search_etapes(
+        composante_id=composante_id,
+        niveau=niveau,
+        domaine=domaine,
+        type=type,
+        code=code,
+        skip=skip,
+        limit=limit
+    )
     
     return {
         "items": [EtapeResponse.model_validate(etape) for etape in etapes],
@@ -87,7 +88,7 @@ async def get_etape_by_id(
         )
     
     # Charger la composante séparément pour éviter les problèmes de lazy loading
-    composante = service.get_composante_by_id(etape.composante_id)
+    composante = service.get_composante_by_id(cast(int, etape.composante_id))
     
     return EtapeWithComposanteResponse.model_validate({
         **EtapeResponse.model_validate(etape).model_dump(),
@@ -95,8 +96,38 @@ async def get_etape_by_id(
     })
 
 
-@router.get("/composante/{composante_id}", response_model=PaginatedResponse, responses={
-    200: {"model": PaginatedResponse},
+@router.get("/code/{code}", response_model=EtapeWithComposanteResponse, responses={
+    200: {"model": EtapeWithComposanteResponse},
+    404: {"model": ErrorResponse},
+    500: {"model": ErrorResponse}
+})
+async def get_etape_by_code(
+    code: str,
+    service: MaquetteService = Depends(get_service)
+):
+    """
+    Récupère une étape spécifique par son code avec sa composante
+    
+    - **code**: Code de l'étape à récupérer
+    """
+    etape = service.get_etape_by_code(code)
+    if not etape:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Étape avec le code '{code}' non trouvée"
+        )
+    
+    # Charger la composante séparément pour éviter les problèmes de lazy loading
+    composante = service.get_composante_by_id(cast(int, etape.composante_id))
+    
+    return EtapeWithComposanteResponse.model_validate({
+        **EtapeResponse.model_validate(etape).model_dump(),
+        "composante": ComposanteResponse.model_validate(composante)
+    })
+
+
+@router.get("/composante/{composante_id}", response_model=PaginatedResponse[EtapeResponse], responses={
+    200: {"model": PaginatedResponse[EtapeResponse]},
     500: {"model": ErrorResponse}
 })
 async def get_etapes_by_composante(
