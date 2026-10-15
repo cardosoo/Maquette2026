@@ -28,6 +28,8 @@ TEST_DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Créer les tables pour les tests (drop d'abord pour avoir un schéma à jour)
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 # Headers pour les appels API (les routes /ui sont publiques, sans payload)
@@ -37,6 +39,7 @@ TEST_HEADERS = {
 }
 
 COMPOSANTE_NOM = "Faculté des Sciences de Test"
+COMPOSANTE_CODE = "FSCT"
 
 
 async def override_get_year_from_header() -> int:
@@ -100,7 +103,7 @@ def test_client():
 def hierarchie(test_client):
     """Crée une composante, deux étapes et une ECUE rattachée aux deux étapes"""
     comp = test_client.post(
-        "/composantes/", json={"nom": COMPOSANTE_NOM}, headers=TEST_HEADERS
+        "/composantes/", json={"nom": COMPOSANTE_NOM, "code": COMPOSANTE_CODE}, headers=TEST_HEADERS
     ).json()
     etape1 = test_client.post(
         "/etapes/",
@@ -148,8 +151,8 @@ def hierarchie(test_client):
     return {"composante": comp, "etape1": etape1, "etape2": etape2, "ecue": ecue}
 
 
-def url_composante(nom: str) -> str:
-    return f"/ui/composante/{quote(nom)}"
+def url_composante(code: str) -> str:
+    return f"/ui/composante/{quote(code)}"
 
 
 class TestAccueil:
@@ -160,6 +163,7 @@ class TestAccueil:
         assert response.status_code == 200
         assert response.headers["content-type"].startswith("text/html")
         assert COMPOSANTE_NOM in response.text
+        assert COMPOSANTE_CODE in response.text
 
     def test_accueil_avec_annee_en_parametre(self, test_client, hierarchie):
         response = test_client.get("/ui?year=2024")
@@ -177,7 +181,7 @@ class TestAccueil:
 
     def test_lien_vers_composante_sans_id(self, test_client, hierarchie):
         html = test_client.get("/ui").text
-        assert f'href="{url_composante(COMPOSANTE_NOM)}?year=2026"' in html
+        assert f'href="{url_composante(COMPOSANTE_CODE)}?year=2026"' in html
         # L'id de la composante ne doit pas apparaître dans un lien
         assert f'href="{url_composante(str(hierarchie["composante"]["id"]))}' not in html
 
@@ -186,10 +190,11 @@ class TestParcours:
     """Navigation dans la structure : composante -> étape -> ECUE et retour"""
 
     def test_page_composante(self, test_client, hierarchie):
-        response = test_client.get(url_composante(COMPOSANTE_NOM))
+        response = test_client.get(url_composante(COMPOSANTE_CODE))
         assert response.status_code == 200
         html = response.text
         assert COMPOSANTE_NOM in html
+        assert COMPOSANTE_CODE in html
         # Les étapes de la composante sont listées avec leur code
         assert "L1TEST" in html
         assert "L2TEST" in html
@@ -204,8 +209,8 @@ class TestParcours:
         assert "Licence 1 Test" in html
         assert "PROG1" in html
         assert 'href="/ui/ecue/PROG1?year=2026"' in html
-        # Lien pour remonter vers la composante (par son nom, pas son id)
-        assert f'href="{url_composante(COMPOSANTE_NOM)}?year=2026"' in html
+        # Lien pour remonter vers la composante (par son code, pas son id)
+        assert f'href="{url_composante(COMPOSANTE_CODE)}?year=2026"' in html
         # Fil d'Ariane complet
         assert "Accueil" in html
 
@@ -220,14 +225,22 @@ class TestParcours:
         assert "40" in html
         # Liens pour remonter : étape principale + composante
         assert 'href="/ui/etape/L1TEST?year=2026"' in html
-        assert f'href="{url_composante(COMPOSANTE_NOM)}?year=2026"' in html
+        assert f'href="{url_composante(COMPOSANTE_CODE)}?year=2026"' in html
         # Autre étape de rattachement affichée
         assert "L2TEST" in html
 
     def test_composante_inconnue_404(self, test_client):
-        response = test_client.get(url_composante("Nulle Part"))
+        response = test_client.get(url_composante("INCONNU"))
         assert response.status_code == 404
         assert response.headers["content-type"].startswith("text/html")
+
+    def test_page_composante_identifiee_par_code(self, test_client, hierarchie):
+        """Les composantes sont identifiées par leur code, pas par leur nom"""
+        response = test_client.get(url_composante(COMPOSANTE_CODE))
+        assert response.status_code == 200
+        # Une URL construite avec le nom (ancien comportement) ne fonctionne plus
+        response = test_client.get(url_composante(COMPOSANTE_NOM))
+        assert response.status_code == 404
 
     def test_etape_inconnue_404(self, test_client):
         response = test_client.get("/ui/etape/INCONNU")
@@ -265,7 +278,14 @@ class TestRecherche:
         assert response.status_code == 200
         html = response.text
         assert COMPOSANTE_NOM in html
-        assert f'href="{url_composante(COMPOSANTE_NOM)}?year=2026"' in html
+        assert f'href="{url_composante(COMPOSANTE_CODE)}?year=2026"' in html
+
+    def test_recherche_par_code_composante(self, test_client, hierarchie):
+        response = test_client.get("/ui/recherche", params={"q": "FSCT"})
+        assert response.status_code == 200
+        html = response.text
+        assert COMPOSANTE_NOM in html
+        assert f'href="{url_composante(COMPOSANTE_CODE)}?year=2026"' in html
 
     def test_recherche_sans_resultat(self, test_client, hierarchie):
         response = test_client.get("/ui/recherche", params={"q": "zzzzzz"})
@@ -286,7 +306,7 @@ class TestSecuriteEtIds:
         ecue_id = hierarchie["ecue"]["id"]
         urls = [
             "/ui",
-            url_composante(COMPOSANTE_NOM),
+            url_composante(COMPOSANTE_CODE),
             "/ui/etape/L1TEST",
             "/ui/ecue/PROG1",
             "/ui/recherche?q=test",

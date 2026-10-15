@@ -2,8 +2,8 @@
 Interface utilisateur en HTML pur (sans framework JavaScript) pour parcourir
 la structure des enseignements : composante -> étape -> ECUE.
 
-Les id de la base de données ne sont jamais exposés : les étapes et les ECUE
-sont identifiées par leur code (unique), les composantes par leur nom (unique).
+Les id de la base de données ne sont jamais exposés : les composantes, les étapes
+et les ECUE sont identifiées par leur code (unique).
 """
 
 from typing import Optional, AsyncGenerator
@@ -92,8 +92,8 @@ async def ui_recherche(
     like = f"%{q}%"
     composantes = (
         session.query(Composante)
-        .filter(Composante.nom.ilike(like))
-        .order_by(Composante.nom)
+        .filter(or_(Composante.code.ilike(like), Composante.nom.ilike(like)))
+        .order_by(Composante.code)
         .limit(MAX_RESULTATS)
         .all()
     )
@@ -116,20 +116,16 @@ async def ui_recherche(
     )
 
 
-@router.get("/composante/{composante_nom}", response_class=HTMLResponse)
+@router.get("/composante/{code}", response_class=HTMLResponse)
 async def ui_composante(
-    composante_nom: str,
+    code: str,
     year: int = Depends(get_ui_year),
     service: MaquetteService = Depends(get_service),
 ):
-    """Détail d'une composante (identifiée par son nom) et liste de ses étapes"""
-    composante = (
-        service.db.query(Composante)
-        .filter(Composante.nom == composante_nom)
-        .first()
-    )
+    """Détail d'une composante (identifiée par son code) et liste de ses étapes"""
+    composante = service.get_composante_by_code(code)
     if not composante:
-        return _not_found(f"Aucune composante nommée « {composante_nom} »", year)
+        return _not_found(f"Aucune composante avec le code « {code} »", year)
     etapes, _ = service.get_etapes_by_composante(composante.id)
     etapes = sorted(etapes, key=lambda e: e.code)
     return pages.page_composante(

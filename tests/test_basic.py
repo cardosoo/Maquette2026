@@ -20,7 +20,8 @@ TEST_DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Créer les tables pour les tests
+# Créer les tables pour les tests (drop d'abord pour avoir un schéma à jour)
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 # Headers par défaut pour les tests
@@ -104,7 +105,7 @@ class TestComposantes:
         """Test la création d'une composante"""
         response = test_client.post(
             "/composantes/",
-            json={"nom": "Faculté de Test"},
+            json={"nom": "Faculté de Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         
@@ -117,7 +118,7 @@ class TestComposantes:
         # Créer une composante d'abord
         test_client.post(
             "/composantes/",
-            json={"nom": "Faculté Test"},
+            json={"nom": "Faculté Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         
@@ -134,18 +135,61 @@ class TestComposantes:
         # Créer une composante
         create_response = test_client.post(
             "/composantes/",
-            json={"nom": "Faculté Test"},
+            json={"nom": "Faculté Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         composante_id = create_response.json()["id"]
-        
+
         response = test_client.get(
             f"/composantes/{composante_id}",
             headers=TEST_HEADERS
         )
-        
+
         assert response.status_code == 200
         assert response.json()["nom"] == "Faculté Test"
+
+    def test_get_composante_by_code(self, test_client):
+        """Test la récupération d'une composante par son code"""
+        test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Test", "code": "FTEST"},
+            headers=TEST_HEADERS
+        )
+
+        response = test_client.get(
+            "/composantes/code/FTEST",
+            headers=TEST_HEADERS
+        )
+
+        assert response.status_code == 200
+        assert response.json()["code"] == "FTEST"
+        assert response.json()["nom"] == "Faculté Test"
+
+    def test_create_composante_duplicate_code(self, test_client):
+        """Test le rejet d'un code de composante en double"""
+        test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté A", "code": "FTEST"},
+            headers=TEST_HEADERS
+        )
+
+        response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté B", "code": "FTEST"},
+            headers=TEST_HEADERS
+        )
+
+        assert response.status_code == 400
+
+    def test_create_composante_requires_code(self, test_client):
+        """Test qu'un code est requis à la création d'une composante"""
+        response = test_client.post(
+            "/composantes/",
+            json={"nom": "Faculté Sans Code"},
+            headers=TEST_HEADERS
+        )
+
+        assert response.status_code == 422
 
 
 class TestEtapes:
@@ -156,7 +200,7 @@ class TestEtapes:
         # Créer une composante d'abord
         composante_response = test_client.post(
             "/composantes/",
-            json={"nom": "Faculté Test"},
+            json={"nom": "Faculté Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         composante_id = composante_response.json()["id"]
@@ -185,7 +229,7 @@ class TestEtapes:
         # Créer une composante
         composante_response = test_client.post(
             "/composantes/",
-            json={"nom": "Faculté Test"},
+            json={"nom": "Faculté Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         composante_id = composante_response.json()["id"]
@@ -223,7 +267,7 @@ class TestECUE:
         # Créer une composante
         composante_response = test_client.post(
             "/composantes/",
-            json={"nom": "Faculté Test"},
+            json={"nom": "Faculté Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         composante_id = composante_response.json()["id"]
@@ -268,7 +312,7 @@ class TestECUE:
         # Créer une composante
         composante_response = test_client.post(
             "/composantes/",
-            json={"nom": "Faculté Test"},
+            json={"nom": "Faculté Test", "code": "FTEST"},
             headers=TEST_HEADERS
         )
         composante_id = composante_response.json()["id"]

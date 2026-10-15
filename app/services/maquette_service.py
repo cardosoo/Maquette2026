@@ -53,6 +53,16 @@ class MaquetteService:
     
     def create_composante(self, composante_data: ComposanteCreate) -> Composante:
         """Crée une nouvelle composante"""
+        # Vérifier si le code existe déjà
+        existing = self.db.query(Composante).filter(
+            Composante.code == composante_data.code
+        ).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Une composante avec le code '{composante_data.code}' existe déjà"
+            )
+
         # Vérifier si le nom existe déjà
         existing = self.db.query(Composante).filter(
             Composante.nom == composante_data.nom

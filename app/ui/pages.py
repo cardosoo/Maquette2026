@@ -3,8 +3,7 @@ Rendu HTML pur (sans framework JavaScript) pour l'interface de parcours
 des maquettes : composante -> étape -> ECUE.
 
 Les identifiants de la base de données (id) ne sont jamais affichés :
-les étapes et les ECUE sont identifiées par leur code (unique),
-les composantes par leur nom (unique).
+les composantes, les étapes et les ECUE sont identifiées par leur code (unique).
 """
 
 import json
@@ -119,7 +118,8 @@ def _layout(
 def page_home(composantes: list, year: Optional[int], years: List[int]) -> str:
     """Accueil : liste des composantes (point d'entrée de la structure)"""
     items = "".join(
-        f'<li><a href="{_e(_u("/ui/composante/" + quote(c.nom), year))}">{_e(c.nom)}</a></li>'
+        f'<li><a href="{_e(_u("/ui/composante/" + quote(c.code), year))}"><span class="code">{_e(c.code)}</span></a>'
+        f'<span class="sous">{_e(c.nom)}</span></li>'
         for c in composantes
     )
     content = f"""
@@ -150,7 +150,7 @@ def page_composante(composante, etapes: list, year: Optional[int], years: List[i
     liste = items if items else '<li class="vide">Aucune étape dans cette composante.</li>'
     content = f"""
 <a class="retour" href="{_e(_u("/ui", year))}">&larr; Toutes les composantes</a>
-<h1>{_e(composante.nom)} <span class="badge">Composante</span></h1>
+<h1><span class="code">{_e(composante.code)}</span> {_e(composante.nom)} <span class="badge">Composante</span></h1>
 <h2>Étapes <span class="badge">{len(etapes)}</span></h2>
 <ul class="liste">
 {liste}
@@ -174,14 +174,14 @@ def page_etape(etape, composante, ecues: list, year: Optional[int], years: List[
     )
     liste = items if items else '<li class="vide">Aucune ECUE dans cette étape.</li>'
     content = f"""
-<a class="retour" href="{_e(_u("/ui/composante/" + quote(composante.nom), year))}">&larr; {_e(composante.nom)}</a>
+<a class="retour" href="{_e(_u("/ui/composante/" + quote(composante.code), year))}">&larr; {_e(composante.code)} - {_e(composante.nom)}</a>
 <h1><span class="code">{_e(etape.code)}</span> {_e(etape.nom)} <span class="badge">Étape</span></h1>
 <table class="details">
   <tr><th>Type</th><td>{_e(etape.type)}</td></tr>
   <tr><th>Niveau</th><td>{_e(etape.niveau)}</td></tr>
   <tr><th>Domaine</th><td>{_e(etape.domaine)}</td></tr>
   <tr><th>Effectif</th><td>{etape.effectif}</td></tr>
-  <tr><th>Composante</th><td><a href="{_e(_u("/ui/composante/" + quote(composante.nom), year))}">{_e(composante.nom)}</a></td></tr>
+  <tr><th>Composante</th><td><a href="{_e(_u("/ui/composante/" + quote(composante.code), year))}"><span class="code">{_e(composante.code)}</span> {_e(composante.nom)}</a></td></tr>
 </table>
 <h2>ECUE <span class="badge">{len(ecues)}</span></h2>
 <ul class="liste">
@@ -193,7 +193,7 @@ def page_etape(etape, composante, ecues: list, year: Optional[int], years: List[
         year,
         years,
         _breadcrumb(
-            [("Accueil", "/ui"), (composante.nom, "/ui/composante/" + quote(composante.nom)), (etape.code, None)],
+            [("Accueil", "/ui"), (composante.nom, "/ui/composante/" + quote(composante.code)), (etape.code, None)],
             year,
         ),
     )
@@ -224,7 +224,7 @@ def page_ecue(ecue, etape, composante, autres_etapes: list, year: Optional[int],
   <tr><th>Période</th><td>{_e(ecue.periode)}</td></tr>
   <tr><th>Effectif</th><td>{ecue.effectif}</td></tr>
   <tr><th>Étape principale</th><td><a href="{_e(_u("/ui/etape/" + quote(etape.code), year))}"><span class="code">{_e(etape.code)}</span> {_e(etape.nom)}</a></td></tr>
-  <tr><th>Composante</th><td><a href="{_e(_u("/ui/composante/" + quote(composante.nom), year))}">{_e(composante.nom)}</a></td></tr>
+  <tr><th>Composante</th><td><a href="{_e(_u("/ui/composante/" + quote(composante.code), year))}"><span class="code">{_e(composante.code)}</span> {_e(composante.nom)}</a></td></tr>
 </table>
 {section_autres}
 <h2>Besoins</h2>
@@ -237,7 +237,7 @@ def page_ecue(ecue, etape, composante, autres_etapes: list, year: Optional[int],
         _breadcrumb(
             [
                 ("Accueil", "/ui"),
-                (composante.nom, "/ui/composante/" + quote(composante.nom)),
+                (composante.nom, "/ui/composante/" + quote(composante.code)),
                 (etape.code, "/ui/etape/" + quote(etape.code)),
                 (ecue.code, None),
             ],
@@ -249,7 +249,8 @@ def page_ecue(ecue, etape, composante, autres_etapes: list, year: Optional[int],
 def page_recherche(q: str, composantes: list, etapes: list, ecues: list, year: Optional[int], years: List[int]) -> str:
     """Résultats de recherche (par code ou par nom) groupés par type"""
     items_comp = "".join(
-        f'<li><a href="{_e(_u("/ui/composante/" + quote(c.nom), year))}">{_e(c.nom)}</a></li>'
+        f'<li><a href="{_e(_u("/ui/composante/" + quote(c.code), year))}"><span class="code">{_e(c.code)}</span></a>'
+        f'<span class="sous">{_e(c.nom)}</span></li>'
         for c in composantes
     )
     items_etapes = "".join(

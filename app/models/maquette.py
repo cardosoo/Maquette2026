@@ -11,17 +11,19 @@ class Composante(Base):
     """
     Modèle pour la table composante
     Représente une composante (faculté, département, etc.)
+    Le code est le code de la structure dans le système OSE (unique)
     """
     __tablename__ = "composante"
-    
+
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nom = Column(String(255), nullable=False)
-    
+    code = Column(String(128), nullable=False, unique=True, index=True)
+
     # Relations
     etapes = relationship("Etape", back_populates="composante", cascade="all, delete-orphan")
-    
+
     def __repr__(self):
-        return f"<Composante(id={self.id}, nom='{self.nom}')>"
+        return f"<Composante(id={self.id}, code='{self.code}', nom='{self.nom}')>"
 
 
 class Etape(Base):

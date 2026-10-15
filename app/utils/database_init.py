@@ -107,9 +107,9 @@ def create_sample_data(year: int) -> bool:
         
         # Créer des composantes d'exemple
         composantes = [
-            Composante(nom="Faculté des Sciences"),
-            Composante(nom="Faculté des Lettres"),
-            Composante(nom="Faculté de Médecine")
+            Composante(nom="Faculté des Sciences", code="SCI"),
+            Composante(nom="Faculté des Lettres", code="LET"),
+            Composante(nom="Faculté de Médecine", code="MED")
         ]
         
         for comp in composantes:

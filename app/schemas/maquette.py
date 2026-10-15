@@ -12,6 +12,7 @@ T = TypeVar('T')
 # Schémas pour Composante
 class ComposanteBase(BaseModel):
     nom: str = Field(..., max_length=255, description="Nom de la composante")
+    code: str = Field(..., max_length=128, description="Code unique de la composante (code OSE de la structure)")
 
 
 class ComposanteCreate(ComposanteBase):
@@ -20,6 +21,7 @@ class ComposanteCreate(ComposanteBase):
 
 class ComposanteUpdate(BaseModel):
     nom: Optional[str] = Field(None, max_length=255, description="Nom de la composante")
+    code: Optional[str] = Field(None, max_length=128, description="Code unique de la composante")
 
 
 class ComposanteResponse(ComposanteBase):

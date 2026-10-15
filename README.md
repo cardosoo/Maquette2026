@@ -249,10 +249,14 @@ Si aucune année n'est spécifiée, l'API utilisera **2026** par défaut.
 
 ```sql
 -- Table des composantes (facultés, départements)
+-- Le code est le code de la structure dans le système OSE (unique)
 CREATE TABLE composante (
     id SERIAL NOT NULL PRIMARY KEY,
-    nom VARCHAR(255) NOT NULL
+    nom VARCHAR(255) NOT NULL,
+    code VARCHAR(128) NOT NULL UNIQUE
 );
+
+CREATE INDEX ix_composante_code ON composante (code);
 
 -- Table des étapes (années d'étude, semestres)
 CREATE TABLE etape (
