@@ -105,6 +105,7 @@ Maquette2026/
 - **CORS** : Configuration complète des CORS
 - **Documentation** : Swagger UI et ReDoc intégrés
 - **Health Check** : Endpoint `/health` pour vérifier l'état de l'API
+- **Interface web** : parcours HTML pur des enseignements à `/ui` (composante → étape → ECUE, recherche par code ou nom)
 
 ### 🔄 Fonctionnalités Partiellement Implémentées
 
@@ -126,9 +127,11 @@ Maquette2026/
 
 ```sql
 -- Table des composantes (facultés, départements)
+-- Le code est le code de la structure dans le système OSE (unique)
 CREATE TABLE composante (
     id SERIAL NOT NULL PRIMARY KEY,
-    nom VARCHAR(255) NOT NULL
+    nom VARCHAR(255) NOT NULL,
+    code VARCHAR(128) NOT NULL UNIQUE
 );
 
 -- Table des étapes (années d'étude, semestres)
@@ -167,6 +170,7 @@ CREATE TABLE ecue_etape (
 );
 
 -- Index pour optimiser les requêtes
+CREATE INDEX ix_composante_code ON composante (code);
 CREATE INDEX etape_i_4db226 ON etape (code);
 CREATE INDEX ecue_i_4db226 ON ecue (code);
 ```
@@ -237,6 +241,24 @@ La sélection de la base s'effectue via l'en-tête HTTP `X-Maquette-Year`.
 | GET | `/rattachements/etape/{etape_id}` | Récupère les rattachements d'une étape |
 | POST | `/rattachements/` | Crée un nouveau rattachement |
 | DELETE | `/rattachements/{id}` | Supprime un rattachement |
+
+### Interface web (HTML)
+
+Interface utilisateur en HTML pur (sans framework JavaScript) pour parcourir la
+structure des enseignements : composante → étape → ECUE. Les id de la base n'y
+sont jamais affichés ; les éléments sont identifiés par leur code (unique).
+Accessible sans en-tête `X-Payload` (consultation en lecture seule).
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/ui` | Accueil : liste des composantes |
+| GET | `/ui/composante/{code}` | Détail d'une composante et liste de ses étapes |
+| GET | `/ui/etape/{code}` | Détail d'une étape, sa composante et ses ECUE |
+| GET | `/ui/ecue/{code}` | Détail d'une ECUE et ses étapes de rattachement |
+| GET | `/ui/recherche?q=...` | Recherche par code ou par nom (composantes, étapes, ECUE) |
+
+L'année de la maquette se choisit via le paramètre `?year=` (2024, 2025, 2026)
+ou l'en-tête `X-Maquette-Year`.
 
 ---
 
@@ -449,7 +471,11 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 ./start.sh
 ```
 
-L'API sera accessible à : `http://localhost:8000`
+L'API sera accessible à : `http://localhost:8000` (port par défaut d'uvicorn et de
+`./start.sh` ; `python main.py` utilise `APP_PORT` du fichier `.env`, soit 8300).
+
+L'interface web de parcours des enseignements est accessible à :
+`http://localhost:8000/ui` (ou `http://localhost:8300/ui` selon le port choisi).
 
 ---
 
@@ -462,7 +488,7 @@ curl -X POST "http://localhost:8000/composantes/" \
   -H "Content-Type: application/json" \
   -H "X-Maquette-Year: 2025" \
   -H "X-Payload: e7b8a803-9a07-40ce-8618-489c31eca10e" \
-  -d '{"nom": "Faculté des Sciences"}'
+  -d '{"nom": "Faculté des Sciences", "code": "SCI"}'
 ```
 
 ### Créer une étape
@@ -543,6 +569,7 @@ curl -X GET "http://localhost:8000/ecues/1/etapes" \
 |---------|------|--------|-------------|
 | 1.0.0 | 11-12 oct. 2026 | - | Création initiale du projet |
 | 1.0.0 | 12 oct. 2026 | - | Correction des warnings SQLAlchemy et Pydantic |
+| 1.1.0 | 15 oct. 2026 | - | Interface web HTML (`/ui`) et code unique des composantes (codes OSE, migration BDD) |
 
 ---
 
