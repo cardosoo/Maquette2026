@@ -1,7 +1,7 @@
 # État du Projet - Maquettes API
 
-*Date: 12 octobre 2026*
-*Version: 1.0.0*
+*Date: 15 octobre 2026*
+*Version: 1.1.0*
 
 ---
 
@@ -29,6 +29,7 @@
 - Gérer les **ECUE** (Unités d'Enseignement) avec leurs besoins spécifiques
 - Gérer les **rattachements** entre ECUE et étapes
 - Travailler avec des bases de données **PostgreSQL annualisées** (maquettes2024, maquettes2025, maquettes2026)
+- Consulter la structure des enseignements via une **interface web en HTML pur** (`/ui`) : parcours composante → étape → ECUE, recherche par code ou nom
 
 L'API offre à la fois des opérations de consultation (GET) et de modification (POST, PUT, DELETE) des données.
 
@@ -58,16 +59,23 @@ Maquette2026/
 │   │   ├── composantes.py   # Endpoints /composantes/*
 │   │   ├── etapes.py        # Endpoints /etapes/*
 │   │   ├── ecues.py         # Endpoints /ecues/*
-│   │   └── rattachements.py # Endpoints /rattachements/*
+│   │   ├── rattachements.py # Endpoints /rattachements/*
+│   │   └── frontend.py      # Interface web /ui (HTML pur)
 │   ├── services/
 │   │   ├── __init__.py
 │   │   └── maquette_service.py # Logique métier
+│   ├── ui/
+│   │   ├── __init__.py
+│   │   └── pages.py         # Rendu HTML des pages /ui
 │   └── utils/
 │       ├── __init__.py
 │       └── database_init.py # Initialisation des tables
 ├── tests/
 │   ├── __init__.py
-│   └── test_basic.py        # Tests unitaires (10 tests)
+│   ├── test_basic.py        # Tests API (13 tests)
+│   └── test_frontend.py     # Tests de l'interface web (21 tests)
+├── migrations/
+│   └── 2026-10-15_ajout_code_composante.sql # Migration : code des composantes
 ├── main.py                  # Application FastAPI principale
 ├── requirements.txt         # Dépendances Python
 ├── .env.example            # Template des variables d'environnement
@@ -96,7 +104,7 @@ Maquette2026/
 
 ### ✅ Complètement Fonctionnel
 
-- **Gestion des composantes** : CRUD complet
+- **Gestion des composantes** : CRUD complet, identifiées par un code unique (code OSE de la structure)
 - **Gestion des étapes** : CRUD complet avec filtres
 - **Gestion des ECUE** : CRUD complet avec champ JSON `besoins`
 - **Gestion des rattachements** : Création et suppression de rattachements ECUE-étape
@@ -184,6 +192,13 @@ L'application travaille avec plusieurs bases de données PostgreSQL, une par ann
 
 La sélection de la base s'effectue via l'en-tête HTTP `X-Maquette-Year`.
 
+### Codes des composantes
+
+La colonne `code` de `composante` contient le code de la structure dans le
+système OSE (exemples : `GHES`, `IPGP-DFED`, `PHARMA`, `EIDD`). Elle a été ajoutée
+par la migration `migrations/2026-10-15_ajout_code_composante.sql` (15 octobre 2026),
+appliquée sur `maquettes2024`, `maquettes2025` et `maquettes2026`.
+
 ---
 
 ## Endpoints API
@@ -202,9 +217,10 @@ La sélection de la base s'effectue via l'en-tête HTTP `X-Maquette-Year`.
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/composantes/` | Liste toutes les composantes |
+| GET | `/composantes/` | Liste toutes les composantes (filtre optionnel `?code=`) |
 | GET | `/composantes/{id}` | Récupère une composante par ID |
-| POST | `/composantes/` | Crée une nouvelle composante |
+| GET | `/composantes/code/{code}` | Récupère une composante par son code |
+| POST | `/composantes/` | Crée une nouvelle composante (nom et code unique requis) |
 | PUT | `/composantes/{id}` | Met à jour une composante |
 | DELETE | `/composantes/{id}` | Supprime une composante |
 
@@ -266,19 +282,26 @@ ou l'en-tête `X-Maquette-Year`.
 
 ### État des Tests
 
-- **Nombre total de tests** : 10
-- **Tests passant** : 10 ✅
+- **Nombre total de tests** : 34
+- **Tests passant** : 34 ✅
 - **Tests échouant** : 0 ❌
 - **Warnings** : 0 ⚠️
 
 ### Couverture des Tests
 
+Les tests utilisent une base **SQLite** (`test.db`) à la place des bases PostgreSQL
+annualisées, via les mécanismes d'override des dépendances FastAPI. Les deux
+modules de test recréent le schéma à chaque exécution (`drop_all` + `create_all`).
+
 Les tests couvrent actuellement :
 
-#### Tests des Composantes (3 tests)
+#### Tests des Composantes (6 tests)
 - ✅ Création d'une composante
 - ✅ Récupération de toutes les composantes
 - ✅ Récupération d'une composante par ID
+- ✅ Récupération d'une composante par code
+- ✅ Rejet d'un code en double à la création
+- ✅ Code requis à la création
 
 #### Tests des Étapes (2 tests)
 - ✅ Création d'une étape
@@ -292,6 +315,14 @@ Les tests couvrent actuellement :
 - ✅ Endpoint racine `/`
 - ✅ Endpoint health `/health`
 - ✅ Endpoint years `/years`
+
+#### Tests de l'interface web (21 tests)
+- ✅ Accueil `/ui` : liste des composantes, formulaire de recherche, accès public
+- ✅ Parcours composante → étape → ECUE et liens de retour (fil d'Ariane)
+- ✅ Recherche par code et par nom
+- ✅ Pages 404 (composante, étape, ECUE inconnues)
+- ✅ Absence des id de la base dans les pages et les liens
+- ✅ L'API reste protégée par l'en-tête `X-Payload`
 
 ### Exécution des Tests
 
@@ -312,6 +343,32 @@ python -m pytest tests/ --cov=app --cov-report=html
 ---
 
 ## Corrections Récentes
+
+### Interface web et code des composantes (15 octobre 2026)
+
+Ajouts de la branche `frontend` :
+
+1. **Interface web `/ui`** : parcours HTML pur (sans framework JavaScript) de la
+   structure des enseignements — composante → étape → ECUE — avec fil d'Ariane,
+   liens de retour, formulaire de recherche par code ou par nom, et sélection de
+   l'année via `?year=`. Les id de la base n'y sont jamais affichés : les éléments
+   sont identifiés par leur code (unique). L'interface est publique (lecture seule)
+   dans le middleware `X-Payload`.
+   - `app/ui/pages.py` : rendu HTML des pages (échappement systématique, CSS inline)
+   - `app/routers/frontend.py` : routes `/ui/*`
+
+2. **Code des composantes** : colonne `code` (unique, non null) ajoutée sur
+   `composante`, peuplée avec les codes des structures OSE. Le code est requis à la
+   création (unicité vérifiée). Les routes `/composantes/code/{code}` et le filtre
+   `?code=` de `GET /composantes/`, qui existaient mais ne fonctionnaient pas, sont
+   désormais opérationnelles.
+   - Migration : `migrations/2026-10-15_ajout_code_composante.sql`, appliquée sur
+     `maquettes2024`, `maquettes2025` et `maquettes2026` (sauvegardes `pg_dump`
+     conservées dans `/home/olivier/backup/Maquette2026_pre-migration/`)
+
+3. **Tests** : `tests/test_frontend.py` (21 tests) ajouté ; `tests/test_basic.py`
+   mis à jour (code requis, lecture par code, doublon rejeté). Les deux modules
+   recréent le schéma SQLite à chaque exécution (`drop_all` + `create_all`).
 
 ### Résolution des Warnings (12 octobre 2026)
 
@@ -364,7 +421,9 @@ model_config = ConfigDict(
 
 2. **Variables d'environnement** : Le fichier `.env` doit contenir les informations de connexion à la base de données et le payload autorisé.
 
-3. **Payload** : L'API vérifie l'en-tête `X-Payload` pour autoriser les requêtes. Les payloads autorisés sont configurés dans le fichier `.env` sous la forme d'un tableau JSON.
+3. **Payload** : L'API vérifie l'en-tête `X-Payload` pour autoriser les requêtes. Les payloads autorisés sont configurés dans le fichier `.env` sous la forme d'un tableau JSON. L'interface web `/ui` est exclue de cette vérification (consultation en lecture seule).
+
+4. **Migration du code des composantes** : la colonne `code` de `composante` doit exister dans les bases annualisées. Pour une base existante, appliquer `migrations/2026-10-15_ajout_code_composante.sql` (déjà fait sur maquettes2024/2025/2026). Les bases `maquettes2022` et `maquettes2023` ne sont pas servies par l'application et n'ont pas été migrées.
 
 ### ⚠️ Problèmes Connus
 
@@ -481,6 +540,16 @@ L'interface web de parcours des enseignements est accessible à :
 
 ## Exemples de Requêtes
 
+### Interface web (navigateur)
+
+Ouvrir dans un navigateur (aucun en-tête requis) :
+
+```
+http://localhost:8300/ui
+```
+
+(ou `http://localhost:8000/ui` selon le port de lancement — voir Démarrage)
+
 ### Créer une composante
 
 ```bash
@@ -489,6 +558,14 @@ curl -X POST "http://localhost:8000/composantes/" \
   -H "X-Maquette-Year: 2025" \
   -H "X-Payload: e7b8a803-9a07-40ce-8618-489c31eca10e" \
   -d '{"nom": "Faculté des Sciences", "code": "SCI"}'
+```
+
+### Récupérer une composante par son code
+
+```bash
+curl -X GET "http://localhost:8000/composantes/code/GHES" \
+  -H "X-Maquette-Year: 2026" \
+  -H "X-Payload: e7b8a803-9a07-40ce-8618-489c31eca10e"
 ```
 
 ### Créer une étape
@@ -579,4 +656,4 @@ Pour toute question ou problème concernant ce projet, contacter l'équipe de d�
 
 ---
 
-*Document généré le 12 octobre 2026*
+*Document généré le 15 octobre 2026*
