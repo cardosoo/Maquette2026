@@ -127,9 +127,12 @@ async def payload_middleware(request: Request, call_next: Callable):
     """
     # Routes publiques qui ne nécessitent pas de payload
     public_paths = ["/docs", "/redoc", "/openapi.json", "/health", "/", "/favicon.ico", "/years"]
-    
+    # Préfixes publics (interface utilisateur en lecture seule)
+    public_prefixes = ["/ui"]
+
     # Vérifier si la route est publique
-    if request.url.path in public_paths:
+    path = request.url.path
+    if path in public_paths or any(path == prefix or path.startswith(prefix + "/") for prefix in public_prefixes):
         response = await call_next(request)
         return response
     
