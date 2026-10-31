@@ -42,7 +42,7 @@ class DatabaseConfig:
         if year not in self._engines:
             db_name = f"maquettes{year}"
             connection_string = (
-                f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@"
+                f"postgresql+psycopg://{DATABASE_USER}:{DATABASE_PASSWORD}@"
                 f"{DATABASE_HOST}:{DATABASE_PORT}/{db_name}"
             )
             self._engines[year] = create_engine(

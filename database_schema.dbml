@@ -1,0 +1,126 @@
+// DBML (Database Markup Language) pour le schéma Maquettes
+// Compatible avec dbdiagram.io
+// Utilise la syntaxe PostgreSQL
+
+// ============================================
+// Configuration de la base de données
+// ============================================
+
+// Note: DBML utilise par défaut le dialecte PostgreSQL
+// Pour utiliser un autre nom de schéma, ajouter: @schema "nom_schema"
+
+// ============================================
+// TABLE: composante
+// ============================================
+Table composante {
+  id SERIAL [pk, increment]
+  nom VARCHAR(255) [not null]
+  
+  // Index
+  index (id) [name: composante_pkey]
+}
+
+// ============================================
+// TABLE: etape
+// ============================================
+Table etape {
+  id SERIAL [pk, increment]
+  nom VARCHAR(128) [not null]
+  code VARCHAR(128) [not null]
+  type VARCHAR(128) [not null]
+  niveau VARCHAR(128) [not null]
+  domaine VARCHAR(128) [not null]
+  effectif INTEGER [not null]
+  composante_id INTEGER [not null]
+  
+  // Clé étrangère
+  foreign_key (composante_id) references composante(id) [on delete: cascade]
+  
+  // Index
+  index (id) [name: etape_pkey]
+  index (code) [name: etape_i_4db226]
+}
+
+// ============================================
+// TABLE: ecue
+// ============================================
+Table ecue {
+  id SERIAL [pk, increment]
+  nom VARCHAR(128) [not null]
+  code VARCHAR(128) [not null]
+  periode VARCHAR(128) [not null]
+  etape_id INTEGER [not null]
+  effectif INTEGER [not null]
+  besoins JSON [not null]
+  
+  // Clé étrangère
+  foreign_key (etape_id) references etape(id) [on delete: cascade]
+  
+  // Index
+  index (id) [name: ecue_pkey]
+  index (code) [name: ecue_i_4db226]
+}
+
+// ============================================
+// TABLE: ecue_etape (table de jointure)
+// ============================================
+Table ecue_etape {
+  id SERIAL [pk, increment]
+  ecue_id INTEGER [not null]
+  etape_id INTEGER [not null]
+  effectif INTEGER [not null]
+  
+  // Clés étrangères
+  foreign_key (ecue_id) references ecue(id) [on delete: cascade]
+  foreign_key (etape_id) references etape(id) [on delete: cascade]
+  
+  // Index
+  index (id) [name: ecue_etape_pkey]
+  index (ecue_id)
+  index (etape_id)
+}
+
+// ============================================
+// RELATIONS
+// ============================================
+
+// Une composante contient plusieurs étapes
+Ref: composante.id < etape.composante_id
+
+// Une étape contient plusieurs ECUE (rattachement principal)
+Ref: etape.id < ecue.etape_id
+
+// Une ECUE peut être rattachée à plusieurs étapes (via ecue_etape)
+Ref: ecue.id < ecue_etape.ecue_id
+Ref: etape.id < ecue_etape.etape_id
+
+// ============================================
+// NOTES
+// ============================================
+
+// Le champ "besoins" de la table ecue contient des informations
+// structurées en JSON, par exemple:
+// {
+//   "salles": ["A101", "A102"],
+//   "equipements": ["projecteur", "tableau"],
+//   "heures": 40,
+//   "enseignants": ["Dupont", "Martin"]
+// }
+
+// ============================================
+// BASES ANNUALISEES
+// ============================================
+// Ce schéma est utilisé pour chaque base de données annualisée:
+// - maquettes2024
+// - maquettes2025
+// - maquettes2026
+// Chaque année a sa propre base de données avec ce schéma.
+
+// ============================================
+// CONFIGURATION DBDIAGRAM
+// ============================================
+// Pour visualiser ce schéma sur dbdiagram.io:
+// 1. Copier tout le contenu de ce fichier
+// 2. Aller sur https://dbdiagram.io/d
+// 3. Coller le contenu dans l'éditeur
+// 4. Le diagramme sera généré automatiquement

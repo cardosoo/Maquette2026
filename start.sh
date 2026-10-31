@@ -24,7 +24,7 @@ else
 fi
 
 # Port par défaut
-PORT=${2:-8000}
+PORT=${2:-8300}
 
 echo ""
 echo "Démarrage du serveur FastAPI..."
