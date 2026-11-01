@@ -27,7 +27,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import des routeurs
-from app.routers import composantes, etapes, ecues, rattachements, frontend
+from app.routers import composantes, etapes, ecues, rattachements, frontend, msd, fonctions
 from app.config.database import database_config
 from app.config.settings import get_settings
 from app.config.dependencies import get_db_session, get_db_session_with_payload, payload_middleware
@@ -96,6 +96,8 @@ app.include_router(etapes.router)
 app.include_router(ecues.router)
 app.include_router(rattachements.router)
 app.include_router(frontend.router)
+app.include_router(msd.router)
+app.include_router(fonctions.router)
 
 
 # Endpoint racine

@@ -50,10 +50,11 @@ async def get_db_session(
     year: int = Depends(get_year_from_header)
 ) -> AsyncGenerator[Session, None]:
     """
-    Dependency pour obtenir une session de base de données en fonction de l'année
-    L'année est récupérée depuis le header X-Maquette-Year
+    Dependency pour obtenir une session sur la base unique maquette_rh.
+    L'année (header X-Maquette-Year) est conservée dans la signature pour
+    la compatibilité des overrides ; le filtrage par année se fait dans les services.
     """
-    session_maker = database_config.get_session_maker(year)
+    session_maker = database_config.get_session_maker()
     session = session_maker()
     try:
         yield session
@@ -108,7 +109,7 @@ async def get_db_session_with_payload(
                 detail="Payload invalide ou non autorisé"
             )
     
-    session_maker = database_config.get_session_maker(year)
+    session_maker = database_config.get_session_maker()
     session = session_maker()
     try:
         yield session
@@ -123,16 +124,33 @@ async def get_db_session_with_payload(
 async def payload_middleware(request: Request, call_next: Callable):
     """
     Middleware qui vérifie que le header X-Payload contient un code autorisé
-    Certaines routes sont exclues (docs, health, etc.)
+    Certaines routes sont exclues (docs, health, interface, etc.)
+    La vérification tolère le préfixe du reverse-proxy : /maquette/docs
+    est traitée comme /docs.
     """
     # Routes publiques qui ne nécessitent pas de payload
     public_paths = ["/docs", "/redoc", "/openapi.json", "/health", "/", "/favicon.ico", "/years"]
     # Préfixes publics (interface utilisateur en lecture seule)
-    public_prefixes = ["/ui"]
+    public_prefixes = ["/ui", "/static"]
 
-    # Vérifier si la route est publique
+    def est_publique(path: str) -> bool:
+        if path in public_paths:
+            return True
+        if any(path == prefix or path.startswith(prefix + "/") for prefix in public_prefixes):
+            return True
+        # Derrière un reverse-proxy qui ne strippe pas le préfixe
+        # (ex: /maquette/docs) : on teste le chemin sans son premier segment
+        parts = path.strip("/").split("/", 1)
+        if len(parts) == 2:
+            sub = "/" + parts[1]
+            if sub in public_paths:
+                return True
+            if any(sub == prefix or sub.startswith(prefix + "/") for prefix in public_prefixes):
+                return True
+        return False
+
     path = request.url.path
-    if path in public_paths or any(path == prefix or path.startswith(prefix + "/") for prefix in public_prefixes):
+    if est_publique(path):
         response = await call_next(request)
         return response
     

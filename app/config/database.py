@@ -1,6 +1,8 @@
 """
-Configuration de la base de données PostgreSQL
-Gère les connexions aux bases annualisées (maquettes2024, maquettes2025, maquettes2026, etc.)
+Configuration de la base de données PostgreSQL unique (maquette_rh)
+
+Toutes les données (structure des enseignements, MSD, fonctions du référentiel)
+vivent dans une seule base, annualisées par une colonne `annee`.
 """
 
 from typing import Optional, Generator
@@ -19,72 +21,46 @@ DATABASE_HOST = os.getenv("DATABASE_HOST", "localhost")
 DATABASE_PORT = os.getenv("DATABASE_PORT", "5432")
 DATABASE_USER = os.getenv("DATABASE_USER", "postgres")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "postgres")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "maquette_rh")
 
 Base = declarative_base()
 
 class DatabaseConfig:
-    """Gère les connexions aux différentes bases de données annualisées"""
-    
+    """Gère la connexion à la base unique maquette_rh"""
+
     def __init__(self):
-        self._engines = {}
-        self._session_makers = {}
-    
-    def get_engine(self, year: int) -> Engine:
-        """
-        Retourne un engine SQLAlchemy pour l'année spécifiée
-        
-        Args:
-            year: Année de la maquette (ex: 2024, 2025, 2026)
-        
-        Returns:
-            Engine SQLAlchemy
-        """
-        if year not in self._engines:
-            db_name = f"maquettes{year}"
+        self._engine: Optional[Engine] = None
+        self._session_maker: Optional[sessionmaker] = None
+
+    def get_engine(self) -> Engine:
+        """Retourne l'engine SQLAlchemy de la base unique"""
+        if self._engine is None:
             connection_string = (
                 f"postgresql+psycopg://{DATABASE_USER}:{DATABASE_PASSWORD}@"
-                f"{DATABASE_HOST}:{DATABASE_PORT}/{db_name}"
+                f"{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
             )
-            self._engines[year] = create_engine(
+            self._engine = create_engine(
                 connection_string,
                 pool_pre_ping=True,
                 pool_recycle=3600,
                 echo=False  # Mettre à True pour le débogage
             )
-        return self._engines[year]
-    
-    def get_session_maker(self, year: int) -> sessionmaker:
-        """
-        Retourne un SessionMaker pour l'année spécifiée
-        
-        Args:
-            year: Année de la maquette
-        
-        Returns:
-            SessionMaker SQLAlchemy
-        """
-        if year not in self._session_makers:
-            engine = self.get_engine(year)
-            self._session_makers[year] = sessionmaker(
+        return self._engine
+
+    def get_session_maker(self) -> sessionmaker:
+        """Retourne le SessionMaker de la base unique"""
+        if self._session_maker is None:
+            self._session_maker = sessionmaker(
                 autocommit=False,
                 autoflush=False,
-                bind=engine
+                bind=self.get_engine()
             )
-        return self._session_makers[year]
-    
+        return self._session_maker
+
     @contextmanager
-    def get_session(self, year: int) -> Generator[Session, None, None]:
-        """
-        Contexte pour obtenir une session de base de données
-        
-        Args:
-            year: Année de la maquette
-        
-        Yields:
-            Session SQLAlchemy
-        """
-        session_maker = self.get_session_maker(year)
-        session = session_maker()
+    def get_session(self) -> Generator[Session, None, None]:
+        """Contexte pour obtenir une session de base de données"""
+        session = self.get_session_maker()()
         try:
             yield session
             session.commit()
@@ -93,26 +69,22 @@ class DatabaseConfig:
             raise e
         finally:
             session.close()
-    
+
     def get_available_years(self) -> list:
         """
-        Retourne la liste des années disponibles (à implémenter selon votre environnement)
-        Pour l'instant, retourne une liste par défaut
+        Retourne la liste des années disponibles.
+        Les données sont distinguées par la colonne `annee`, pas par la base.
         """
-        # Cela pourrait être implémenté pour interroger PostgreSQL
-        # pour lister les bases de données disponibles
+        # À terme, pourrait interroger la table pour lister les années présentes
         return [2024, 2025, 2026]
 
 # Instance globale de la configuration de la base de données
 database_config = DatabaseConfig()
 
 # Fonction utilitaire pour obtenir une session rapidement
-def get_db_session(year: int = 2026) -> Generator[Session, None, None]:
+def get_db_session() -> Generator[Session, None, None]:
     """
-    Générateur de session pour une année donnée (utilisé par FastAPI Dependency Injection)
-    
-    Args:
-        year: Année de la maquette (par défaut 2026)
+    Générateur de session (utilisé par FastAPI Dependency Injection)
     """
-    with database_config.get_session(year) as session:
+    with database_config.get_session() as session:
         yield session

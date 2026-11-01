@@ -2,7 +2,7 @@
 Modèles SQLAlchemy pour les tables de la base de données
 """
 
-from sqlalchemy import Column, Integer, String, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.config.database import Base
 
@@ -14,10 +14,12 @@ class Composante(Base):
     Le code est le code de la structure dans le système OSE (unique)
     """
     __tablename__ = "composante"
+    __table_args__ = (UniqueConstraint('code', 'annee', name='uq_composante_code_annee'),)
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nom = Column(String(255), nullable=False)
-    code = Column(String(128), nullable=False, unique=True, index=True)
+    code = Column(String(128), nullable=False, index=True)
+    annee = Column(Integer, nullable=False, index=True)
 
     # Relations
     etapes = relationship("Etape", back_populates="composante", cascade="all, delete-orphan")
@@ -33,6 +35,7 @@ class Etape(Base):
     """
     __tablename__ = "etape"
     
+    annee = Column(Integer, nullable=False, index=True)
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nom = Column(String(128), nullable=False)
     code = Column(String(128), nullable=False, index=True)
@@ -58,6 +61,7 @@ class ECUE(Base):
     """
     __tablename__ = "ecue"
     
+    annee = Column(Integer, nullable=False, index=True)
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nom = Column(String(128), nullable=False)
     code = Column(String(128), nullable=False, index=True)
@@ -81,6 +85,7 @@ class ECUE_Etape(Base):
     """
     __tablename__ = "ecue_etape"
     
+    annee = Column(Integer, nullable=False, index=True)
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     ecue_id = Column(Integer, ForeignKey('ecue.id'), nullable=False)
     etape_id = Column(Integer, ForeignKey('etape.id'), nullable=False)

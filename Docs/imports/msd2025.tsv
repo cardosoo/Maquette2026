@@ -1,0 +1,103 @@
+Code	Libelle	Multiplicateur	Pas d'heures complémentaires
+AMENAG	Aménagement de service enseignants 2e degré	-1	
+AMENAG_PREV	Aménagement service suite à préconisation Médecine du travail - 2/3 du service statutaire MAX	-1	
+ARRIVE	Arrivé en cours d'année	-1	
+C2_DIR_ADJ_UMS	C2 - Directeur·trice adjoint·e d'UMS	-1	
+C2_DIR_UMS	C2 - Directeur·trice d'UMS	-1	
+CADOPT	Congé d'adoption	-1	
+CBONIF	Congé bonifié	-1	
+CGM_A	Congé de grave maladie à l'année (contractuel)	-1	
+CGM_S	Congé de grave maladie inférieur à un an (contractuel)	-1	
+Charge_mission	C2 - Chargé·e de mission auprès de la présidence ou de Faculté (de plus de 18 mois)	-1	
+CLD_A	Congé de longue durée à l'année	-1	
+CLD_S	Congé de longue durée inférieur à un an	-1	
+CLM_A	Congé de longue maladie à l'année	-1	
+CLM_S	Congé de longue maladie inférieur à un an	-1	
+CMATER	Congé de maternité	-1	
+COM	Congé ordinaire de maladie	-1	
+CONG_PROCH_AIDANT_A	Congé de proche aidant à l'année	-1	
+CONG_PROCH_AIDANT_S	Congé de proche aidant inférieur à l'année	-1	
+CONG_SOL_FAM_A	Congé de solidarité familiale à l'année	-1	
+CONG_SOL_FAM_S	Congé de solidarité familiale inférieur à l'année	-1	
+CONV-SE	Convention d'enseignement entrante ou sortante	-1	
+CPAR	Congé paternité	-1	
+CPAR_A	Congé parental à l'année (position)	-1	
+CPAR_S	Congé parental inférieur à un an	-1	
+CPF	Compte personnel de formation	-1	
+CPP_A	Congé pour projet pédagogique à l'année	-1	
+CPP_S	Congé pour projet pédagogique inférieur à un an	-1	
+CRCT_A	Congé Recherche et conversion thématique Année	-1	
+CRCT_S	Congé Recherche et conversion thématique inférieur à un an	-1	
+DECHARGE_PCA_PA	Décharge Prime Charge administrative	-1	
+DECH_AUTR	Autres décharges	-1	
+DECH_CP	Décharge conversion primes	-1	
+DECH_NMCF	Décharge néo-MCF (dispositif règlementaire 32h)	-1	
+DECH_RCM	Décharge retour congé maternité	-1	
+DECH_SYNDICAL	Décharge-ASA syndicale	-1	
+DELEG_A	Délégation autres employeurs à l'année	-1	
+DELEG_AUTR_A	Autres délégations à l'année	-1	
+DELEG_AUTR_S	Autres délégations inférieures à l'année	-1	
+DELEG_CNRS_A	Délégation CNRS_A	-1	
+DELEG_CNRS_S	Délégation CNRS_S	-1	
+DELEG_IUF_A	Délégation IUF à l'année	-1	
+DELEG_IUF_S	Délégation IUF inférieure à un an	-1	
+DELEG_S	Délégation autres employeurs inférieure à l'année	-1	
+DEPART	Départ en cours d'année	-1	
+DETACH_A	Détachement à l'année	-1	
+DETACH_S	Détachement inférieur à un an	-1	
+DIR_adj_CED	C2 - Directeur·trice adjoint·e du collège des écoles doctorales	-1	
+Dir_adj_ED	C2 - Directeur·trice adjoint·e d'école doctorale	-1	
+Dir_ADJ_UAR	C2 - Directeur·trice adjoint·e d'UAR	-1	
+DIR_adj_UAR	C2 - Directeur·trice adjoint·e d'unité de recherche	-1	
+DIR_CED	C2 - Directeur·trice du collège des écoles doctorales	-1	
+DIR_COMP	C2 - Directeur·trice de composante	-1	
+Dir_comp_adj	C2 - Directeur·trice adjoint·e de composante	-1	
+Dir_ED	Directeur·trice d'école doctorale ou codirecteur·trice d'école doctorale	-1	
+Dir_SC	C2 - Directeur·trice d'un service commun et central de l'université	-1	
+DIR_UAR	C2 - Directeur·trice d'UAR	-1	
+DIR_UR	C2 - Directeur·trice d'unité de recherche	-1	
+DISPO_A	Disponibilité à l'année	-1	
+DISPO_S	Disponibilité inférieure à un an	-1	
+Doyen-ne de Faculté	Doyen·ne de Faculté	-1	
+FORM_NMCF	Formation néo-mcf (dispositif UP Cité 40HETD Max)	-1	
+JDN	Jour de naissance	-1	
+MAD_A	Mise à disposition	-1	
+MAD_S	Mise à disposition inférieure à un an	-1	
+MODUL_MOINS	Modulation de service à la baisse	-1	
+MTT	Mi-temps thérapeutique	-1	
+PA_ADMIN	Prime d'administration	-1	
+PCA-Charg-mission	PCA - Chargé·e de mission auprès de la présidence ou de Faculté (de plus de 18 mois)	-1	
+PCA_DIR_ADJ_COMP	PCA - Directeur·trice adjoint·e de composante	-1	
+PCA_DIR_ADJ_ED	PCA - Directeur·trice adjoint·e du collège des écoles doctorales	-1	
+PCA_DIR_ADJOINT_UAR	PCA - Directeur·trice adjoint·e d'UAR	-1	
+PCA_DIR_ADJ_UMS	PCA - Directeur·trice adjoint·e d'UMS	-1	
+PCA_DIR_ADJ_UR	PCA - Directeur·trice adjoint·e d'unité de recherche	-1	
+PCA_DIR_CED	PCA - Directeur·trice du collège des écoles doctorales	-1	
+PCA_DIR_COMP	PCA - Directeur·trice de composante	-1	
+PCA_DIR_ED	PCA - Directeur·trice d'école doctorale ou codirecteur·trice d'école doctorale	-1	
+PCA_DIR_SC	PCA - Directeur·trice d'un service commun et central de l'université	-1	
+PCA_DIR_UAR	PCA - Directeur·trice d'UAR	-1	
+PCA_DIR_UMS	PCA - Directeur·trice d'UMS	-1	
+PCA_DIR_UR	PCA - Directeur·trice d'unité de recherche	-1	
+PCA - Doyen-ne de Faculté	PCA - Doyen·ne de Faculté	-1	
+PCA_PRES_CACFR	PCA - Président·e du CAc FR de Faculté	-1	
+PCA_PRES_COMMISSION	PCA - Président·e de commission d'établissement ou de Faculté	-1	
+PCA_PRES_SECTION	PCA - Président·e de la section disciplinaire "Usagers" de l'université	-1	
+PCA_PRES_SENATFR	PCA - Président·e du sénat académique en formation restreinte	-1	
+PCA_VD_FAC	PCA - Vice-doyen·e de Faculté	-1	
+PCA_VP_DEL	PCA - Vice-président·e délégué·e	-1	
+PCA_VP_STAT	PCA - Vice-président·e statutaire	-1	
+Pres_CAC_FR	C2 - Président·e du CAc FR de Faculté	-1	
+Pres_COM_ETAB	C2 - Président·e de commission d'établissement ou de Faculté	-1	
+PRES_DISC	C2 - Président·e de la section disciplinaire "Usagers" de l'université	-1	
+President_commission	C2 - Président·e de commission d'établissement ou de Faculté	-1	
+Pres_SENAT_FR	C2 - Président·e du sénat académique en formation restreinte	-1	
+REP_NEGATIF	Report négatif	-1	
+REP_POSITIF	Report positif	1	
+RIPEC2	RIPEC - composante fonctionnelle C2	-1	
+TI	Temps incomplet	-1	
+TP_A	Temps partiel à l'année	-1	
+TP_S	Temps partiel inférieur à un an	-1	
+VD_FAC	C2 - Vice-doyen·e de Faculté	-1	
+VP_DEL	C2 - Vice-président·e délégué·e	-1	
+VP_STAT	C2 - Vice-président·e statutaire	-1	

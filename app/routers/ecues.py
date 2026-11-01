@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any, cast
 from sqlalchemy.orm import Session
 
-from app.config.dependencies import get_db_session_with_payload as get_db_session
+from app.config.dependencies import get_db_session_with_payload as get_db_session, get_year_from_header
 from app.services.maquette_service import MaquetteService
 from app.schemas.maquette import (
     ECUEResponse, ECUECreate, ECUEUpdate,
@@ -18,9 +18,12 @@ from app.schemas.maquette import (
 router = APIRouter(prefix="/ecues", tags=["ECUE"])
 
 
-def get_service(db_session: Session = Depends(get_db_session)) -> MaquetteService:
-    """Dependency pour obtenir le service avec la session de base de données"""
-    return MaquetteService(db_session)
+def get_service(
+    db_session: Session = Depends(get_db_session),
+    year: int = Depends(get_year_from_header)
+) -> MaquetteService:
+    """Dependency pour obtenir le service avec la session et l'année"""
+    return MaquetteService(db_session, year)
 
 
 @router.get("/", response_model=PaginatedResponse[ECUEResponse], responses={

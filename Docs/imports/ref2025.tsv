@@ -1,0 +1,38 @@
+Code	Libelle	Libelle court	Domaine Fonctionnel	Structure	Formation à préciser	Peut dans serv.
+ANIM_STRUCTU	Animation de structures de dialogue science-société	Animation structures dialogue	D103 - Form init&cont doct			Oui
+CHAR_MISS_PRES	Chargé de mission de la présidence ou de la faculté	Chargé de mission de la présidence ou de la faculté	D103 - Form init&cont doct			Oui
+CHARGE_MF	Chargé de mission facultaire	Chargé mission facultaire	D103 - Form init&cont doct			Oui
+CONCEPT_DEV	Conception et développement de pratiques pédagogiques innovantes.	Conception développement	D103 - Form init&cont doct			Oui
+COORDI_IE	Coordination d'intervenants extérieurs (hors responsabilité de diplôme)	Coordination intervenants exter.	D103 - Form init&cont doct			Oui
+DIR_ADJ	Directeur adjoint ou assesseur	Directeur adjoint ou assesseur	D103 - Form init&cont doct			Oui
+DIR_ADJ_URC	Direction/Direction adjointe Unité recherche contractualisée ou reconnue par le conseil scientifique	Direction unité recherche	D103 - Form init&cont doct			Oui
+DIR_COMP	Directeur de composante	Directeur de composante	D105 - Biblio & Doc			Oui
+DIR_ED	Direction ou direction adjointe d'une école doctorale	Direction école doctorale	D103 - Form init&cont doct			Oui
+DIR_ETUDE	Direction d'études	Direction d'études	D103 - Form init&cont doct			Oui
+ENCA_MEMO_THESE	Encadrement de mémoires et thèses d'exercice après validation finale	Encadrement mémoires thèses	D103 - Form init&cont doct			Oui
+ENCA_PARTI_ACTI	Participation à des activités d'orientation active et d'insertion pro ou Parcoursup	activité d’orientation, d’insertion ou parcours sup	D101 - Form init&cont licence			Oui
+ENCA_PROJ_TUTO	Encadrement de projet tutorés, de fin d'études et d'apprentissage	Encadrement projet	D103 - Form init&cont doct			Oui
+ENCA_STAGE	Encadrement de stage (suivi sur lieu, rencontres étudiants et maître de stage, suivi et rapport)	Encadrement de stage	D103 - Form init&cont doct			Oui
+ENCA_VAE	VAE : accompagnement individualisé et participation aux jurys	Encadrement VAE	D103 - Form init&cont doct			Oui
+ENSEIGN_REF	Enseignant référent	Enseignant référent	D103 - Form init&cont doct			Oui
+EXPERTI_AUTO_EVAL	Responsable de l'auto-évaluation de l'établissement, de la faculté, ou de l'UFR	Responsable auto évaluation	D103 - Form init&cont doct			Oui
+EXPERTI_AUTRE	Autres expertises pour le compte de l'établissement, la faculté ou de l'UFR	Autres expertises	D103 - Form init&cont doct			Oui
+INNOV_PEDA	Elaboration, mise en ligne d'un module d'enseignement/formation	Innovation pédagogique	D103 - Form init&cont doct			Oui
+JURY_PASS	Participation à des jurys de grande ampleur (oraux des PAS)	Participation à des jurys de grande ampleur (oraux des PAS)	D101 - Form init&cont licence			Oui
+Mission d'expertise	Autres expertises pour le compte d'une instance de l'établissement dans le cadre des nouveaux dispositifs LPR	Expertises instances dispositif LPR	D103 - Form init&cont doct			Oui
+PILOTAGE_PROJ_PI	Pilotage de projets pédagogiques internationaux	Pilotage projets pédagogiques	D103 - Form init&cont doct			Oui
+PILOTAGE_SCIENTI	Pilotage scientifique de projets de recherche en réseau	Pilotage scientifique projets	D103 - Form init&cont doct			Oui
+PRESIDE_CO	Présidence de commission ou de comité figurant dans le RI ou dans les statut de l'établissement ou des facultés	Présidence commission comité	D103 - Form init&cont doct			Oui
+REF_MISSION	Référent pour une mission définie par Université Paris Cité	Référent mission	D103 - Form init&cont doct			Oui
+RESP_SCOM	Responsable d'un service commun reconnu par l'université	Responsable d'un service commun reconnu par l'université	D103 - Form init&cont doct			Oui
+RESPO_DEP	Responsabilité de département, filière, diplôme, parcours, certification, coordination de stage	Responsabilité département	D103 - Form init&cont doct			Oui
+RESPO_EP_LMD	Responsabilité d'équipe pédagogique, responsabilité diplôme licence, licence pro, master	Responsablité d'équipe LMD	D103 - Form init&cont doct			Oui
+RESPO_EQUIPEMENT	Responsable d'équipements	Responsable d'équipements	D103 - Form init&cont doct			Oui
+RESPO_MEDIA	Responsable de média de diffusion de la recherche	Responsable média diffusion	D103 - Form init&cont doct			Oui
+RESPO_MI	Responsable de la mobilité internationale	Responsable mobilité	D103 - Form init&cont doct			Oui
+RESPO_MISS_PEDA	Responsable d'une mission pédagogique particulière validée par le Sénat ou conseil facultaires	Responsable mission pédagogique	D103 - Form init&cont doct			Oui
+RESPO_PTT_GE	Responsabilité d'une plate-forme technologique ou d'un grand équipement	Responsable plate-forme tech	D103 - Form init&cont doct			Oui
+RESPO_SCIENTI_CO	Responsable scientifique de collection ou de fonds de l'établissement	Responsable collection fonds	D103 - Form init&cont doct			Oui
+RESPO_SCIENTI_EX	Responsable scientifique d'expositions	Responsable d'expositions	D103 - Form init&cont doct			Oui
+VISIT_FORMA	Visite dans le cadre formation	Visite pour formation	D103 - Form init&cont doct			Oui
+VP_VD	Vice-président ou vice-doyen	Vice-président ou vice-doyen	D103 - Form init&cont doct			Oui

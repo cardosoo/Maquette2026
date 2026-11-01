@@ -46,8 +46,8 @@ async def get_ui_year(
 async def get_ui_session(
     year: int = Depends(get_ui_year),
 ) -> AsyncGenerator[Session, None]:
-    """Session de base de données pour l'interface, selon l'année demandée"""
-    session_maker = database_config.get_session_maker(year)
+    """Session sur la base unique maquette_rh (l'année sert au filtrage, pas au choix de la base)"""
+    session_maker = database_config.get_session_maker()
     session = session_maker()
     try:
         yield session
@@ -58,9 +58,12 @@ async def get_ui_session(
         session.close()
 
 
-def get_service(db_session: Session = Depends(get_ui_session)) -> MaquetteService:
-    """Dependency pour obtenir le service avec la session de base de données"""
-    return MaquetteService(db_session)
+def get_service(
+    db_session: Session = Depends(get_ui_session),
+    year: int = Depends(get_ui_year),
+) -> MaquetteService:
+    """Dependency pour obtenir le service avec la session et l'année"""
+    return MaquetteService(db_session, year)
 
 
 def _not_found(message: str, year: int) -> HTMLResponse:
@@ -78,7 +81,12 @@ async def ui_accueil(
     session: Session = Depends(get_ui_session),
 ):
     """Accueil de l'interface : liste des composantes (point d'entrée)"""
-    composantes = session.query(Composante).order_by(Composante.nom).all()
+    composantes = (
+        session.query(Composante)
+        .filter(Composante.annee == year)
+        .order_by(Composante.nom)
+        .all()
+    )
     return pages.page_home(composantes, year, database_config.get_available_years())
 
 
@@ -92,21 +100,21 @@ async def ui_recherche(
     like = f"%{q}%"
     composantes = (
         session.query(Composante)
-        .filter(or_(Composante.code.ilike(like), Composante.nom.ilike(like)))
+        .filter(Composante.annee == year, or_(Composante.code.ilike(like), Composante.nom.ilike(like)))
         .order_by(Composante.code)
         .limit(MAX_RESULTATS)
         .all()
     )
     etapes = (
         session.query(Etape)
-        .filter(or_(Etape.code.ilike(like), Etape.nom.ilike(like)))
+        .filter(Etape.annee == year, or_(Etape.code.ilike(like), Etape.nom.ilike(like)))
         .order_by(Etape.code)
         .limit(MAX_RESULTATS)
         .all()
     )
     ecues = (
         session.query(ECUE)
-        .filter(or_(ECUE.code.ilike(like), ECUE.nom.ilike(like)))
+        .filter(ECUE.annee == year, or_(ECUE.code.ilike(like), ECUE.nom.ilike(like)))
         .order_by(ECUE.code)
         .limit(MAX_RESULTATS)
         .all()

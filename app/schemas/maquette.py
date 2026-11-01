@@ -26,6 +26,7 @@ class ComposanteUpdate(BaseModel):
 
 class ComposanteResponse(ComposanteBase):
     id: int = Field(..., description="Identifiant unique de la composante")
+    annee: int = Field(..., description="Année de la maquette")
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -56,6 +57,7 @@ class EtapeUpdate(BaseModel):
 
 class EtapeResponse(EtapeBase):
     id: int = Field(..., description="Identifiant unique de l'étape")
+    annee: int = Field(..., description="Année de la maquette")
     composante_id: int = Field(..., description="ID de la composante")
     
     model_config = ConfigDict(from_attributes=True)
@@ -89,6 +91,7 @@ class ECUEUpdate(BaseModel):
 
 class ECUEResponse(ECUEBase):
     id: int = Field(..., description="Identifiant unique de l'ECUE")
+    annee: int = Field(..., description="Année de la maquette")
     etape_id: int = Field(..., description="ID de l'étape principale")
     
     model_config = ConfigDict(from_attributes=True)
@@ -115,6 +118,7 @@ class ECUEEtapeUpdate(BaseModel):
 
 class ECUEEtapeResponse(ECUEEtapeBase):
     id: int = Field(..., description="Identifiant unique du rattachement")
+    annee: int = Field(..., description="Année de la maquette")
     
     model_config = ConfigDict(from_attributes=True)
 
