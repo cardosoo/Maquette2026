@@ -5,7 +5,7 @@ Router pour les opérations sur les fonctions du référentiel (RH)
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
-from app.config.dependencies import get_db_session, get_year_from_header
+from app.config.dependencies import get_db_session_with_payload as get_db_session, get_year_from_header
 from app.services.fonction_service import FonctionService
 from app.schemas.rh import FonctionRefCreate, FonctionRefResponse
 

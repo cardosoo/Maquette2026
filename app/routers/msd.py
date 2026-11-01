@@ -5,7 +5,7 @@ Router pour les opérations sur les MSD (Modifications de Service Dû)
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
-from app.config.dependencies import get_db_session, get_year_from_header
+from app.config.dependencies import get_db_session_with_payload as get_db_session, get_year_from_header
 from app.services.msd_service import MSDService
 from app.schemas.rh import MSDCreate, MSDResponse
 
